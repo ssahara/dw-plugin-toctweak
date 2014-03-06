@@ -1,0 +1,27 @@
+/*
+ * DokuWiki plugin TOC Tweak;
+ */
+#dw__inlinetoc {
+    border-color: __border__;
+    border-style: solid;
+    border-width: thin;
+    padding-top: 10px;
+    border-radius : 10px;
+    _background-color: __background_alt__;
+}
+
+#dw__inlinetoc h3 {
+    padding-left: 2em;
+    font-size: .875em;
+    font-weight: bold;
+}
+
+#dw__inlinetoc ul {
+    padding-left: 2.2em;
+    list-style-type: square;
+    line-height: 1.5em;
+}
+#dw__inlinetoc.width18 {
+    width: 18em;
+}
+

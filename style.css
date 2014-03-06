@@ -1,0 +1,13 @@
+/*
+ * DokuWiki plugin TOC Tweak;
+ */
+#dw__toc.wide {
+    width: 100%;
+}
+#dw__toc.wide h3 {
+    background-color: #f8f8f8;
+}
+#dw__toc.width18 {
+    width: 18em;
+}
+
