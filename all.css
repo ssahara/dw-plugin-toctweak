@@ -2,6 +2,7 @@
  * DokuWiki plugin TOC Tweak;
  */
 #dw__inlinetoc {
+    margin-top: 10px;
     border-color: __border__;
     border-style: solid;
     border-width: thin;
@@ -20,6 +21,7 @@
     padding-left: 2.2em;
     list-style-type: square;
     line-height: 1.5em;
+    font-size: 90%;
 }
 #dw__inlinetoc.width18 {
     width: 18em;
