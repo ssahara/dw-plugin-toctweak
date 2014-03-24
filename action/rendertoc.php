@@ -35,8 +35,17 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
 
         if (!isset($INFO['meta']['toc']['position'])) return;
         // check values
-        $topLv = ($INFO['meta']['toc']['toptoclevel']) ?: $conf['toptoclevel'];
-        $maxLv = ($INFO['meta']['toc']['maxtoclevel']) ?: $conf['maxtoclevel'];
+        // does not work in PHP 5.2.x
+        //$topLv = ($INFO['meta']['toc']['toptoclevel']) ?: $conf['toptoclevel'];
+        //$maxLv = ($INFO['meta']['toc']['maxtoclevel']) ?: $conf['maxtoclevel'];
+        if (empty($INFO['meta']['toc']['toptoclevel'])) {
+               $topLv = $conf['toptoclevel'];
+        } else $topLv = $INFO['meta']['toc']['toptoclevel'];
+
+        if (empty($INFO['meta']['toc']['maxtoclevel'])) {
+               $maxLv = $conf['maxtoclevel'];
+        } else $maxLv = $INFO['meta']['toc']['maxtoclevel'];
+
 
         if (($topLv < 1) || ($topLv > 5)) $topLv = $conf['toptoclevel'];
         if (($maxLv < 1) || ($maxLv > 5)) $maxLv = $conf['maxtoclevel'];
