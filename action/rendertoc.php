@@ -79,10 +79,13 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
 
         // TOC Position
         $tocPosition = $this->getConf('tocPosition');
-        if (!isset($INFO['meta']['toc']['position']) && ($tocPosition == 0)) {
-            return;
-        } else {
-            $tocPosition = $INFO['meta']['toc']['position'];
+        if ($ACT=='preview') {
+            if ( (strpos($event->data[1], '<!-- TOC -->')) ||
+                 (strpos($event->data[1], '<!-- INLINETOC -->')) ) {
+                $tocPosition = -1;
+            }
+        } elseif (isset($INFO['meta']['toc']['position'])) {
+                $tocPosition = $INFO['meta']['toc']['position']; // = -1;
         }
 
         // set PLACEHOLDER according the tocPostion config setting
