@@ -71,9 +71,11 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
         if ($INFO['id'] != $ID) return;
 
         // exclude <dokuwiki>/inc/lang/<ISO>/preview.txt file.
-        if (preg_match('/<h\d.*>(.*?)<\/h\d>/', $event->data[1], $matches)) {
-            if ($matches[1] != $INFO['meta']['title']) return;
-        } else return; 
+        if ($ACT=='preview') {
+            if (preg_match('/<h\d.*>(.*?)<\/h\d>/', $event->data[1], $matches)) {
+                if ($matches[1] != hsc($INFO['meta']['title'])) return;
+            }
+        } 
 
         // TOC Position
         $tocPosition = $this->getConf('tocPosition');
