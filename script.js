@@ -2,8 +2,11 @@
  * DokuWiki plugin TOC Tweak;
  */
 jQuery(function() {
-    // toc closetoc component
-    if (JSINFO.plugin_toc.initial_state == -1) {
-        jQuery('#dw__toc .toggle')[0].setState(-1);
+    // JSINFO.toc is to be defined in the Action toctweak closetoc component
+    if (typeof(JSINFO.toc.initial_state) != 'undefined') {
+        var $toc = jQuery('#dw__toc h3');
+        if ($toc.length) {
+            $toc[0].setState(JSINFO.toc.initial_state);
+        }
     }
 });

@@ -31,7 +31,7 @@ class action_plugin_toctweak_closetoc extends DokuWiki_Action_Plugin {
         } else {
             $meta_tocInitialState = $INFO['meta']['toc']['initial_state'];
         }
-        $JSINFO['plugin_toc'] = array(
+        $JSINFO['toc'] = array(
                 'initial_state' => $meta_tocInitialState,
         );
     }
