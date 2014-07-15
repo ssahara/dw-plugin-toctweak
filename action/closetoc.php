@@ -14,7 +14,7 @@ require_once(DOKU_PLUGIN.'action.php');
 class action_plugin_toctweak_closetoc extends DokuWiki_Action_Plugin {
 
     // register hook
-    public function register(&$controller) {
+    public function register(Doku_Event_Handler $controller) {
         $controller->register_hook('DOKUWIKI_STARTED', 'BEFORE', $this, '_exportToJSINFO');
     }
 

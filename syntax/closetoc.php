@@ -25,11 +25,11 @@ class syntax_plugin_toctweak_closetoc extends DokuWiki_Syntax_Plugin {
         );
     }
 
-    public function handle($match, $state, $pos, &$handler) {
+    public function handle($match, $state, $pos, Doku_Handler $handler) {
         return array($state, $match);
     }
 
-    public function render($mode, &$renderer, $data) {
+    public function render($mode, Doku_Renderer $renderer, $data) {
         if ($mode == 'metadata') {
              $renderer->meta['toc']['initial_state'] = -1;
         }
