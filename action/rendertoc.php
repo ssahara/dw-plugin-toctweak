@@ -19,7 +19,7 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
     /**
      * Register event handlers
      */
-    public function register(&$controller) {
+    public function register(Doku_Event_Handler $controller) {
         $controller->register_hook('DOKUWIKI_STARTED', 'BEFORE', $this, '_setTocControl');
         $controller->register_hook('RENDERER_CONTENT_POSTPROCESS', 'BEFORE', $this, 'handlePostProcess', array());
         $controller->register_hook('TPL_ACT_RENDER', 'BEFORE', $this, 'handle_act_render', array());
