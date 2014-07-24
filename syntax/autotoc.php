@@ -49,10 +49,15 @@ class syntax_plugin_toctweak_autotoc extends DokuWiki_Syntax_Plugin {
         $match = $matches[1];
 
         // get TOC generation parameter, to be vefified in action component
-        if (preg_match('/(\d+)?\s*-?\s*(\d+)?/', $match, $matches)) {
-            $topLv = $matches[1];
-            $maxLv = $matches[2];
-            $match = str_replace($matches[0], '', $match);
+        if (preg_match('/\b(?:(\d+)?-(\d+)|(\d+))\b/', $match, $matches)) {
+            if (count($matches) == 4) {
+                $topLv = $matches[3];
+                $maxLv = null;
+            } else {
+                $topLv = $matches[1];
+                $maxLv = $matches[2];
+            }
+            $match = preg_replace('/\b'.$matches[0].'\b/', '', $match);
         }
 
         // get class name for TOC box, ensure excluded any malcious character
