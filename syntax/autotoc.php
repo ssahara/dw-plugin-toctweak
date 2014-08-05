@@ -29,11 +29,11 @@ class syntax_plugin_toctweak_autotoc extends DokuWiki_Syntax_Plugin {
         );
     }
 
-    public function handle($match, $state, $pos, Doku_Handler &$handler) {
+    public function handle($match, $state, $pos, Doku_Handler $handler) {
         return array($state, $match);
     }
 
-    public function render($mode, Doku_Renderer &$renderer, $indata) {
+    public function render($mode, Doku_Renderer $renderer, $indata) {
         if (empty($indata)) return false;
         list($state, $data) = $indata;
 
