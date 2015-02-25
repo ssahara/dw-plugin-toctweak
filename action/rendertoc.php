@@ -29,27 +29,24 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
      * Overwrites TOC-related elements of $conf array
      */
     public function _setTocControl(&$event) {
-        global $conf, $INFO, $ACT;
-        // TOC control should be changeable in only normal page
-        if (( empty($ACT) || ($ACT=='show') || ($ACT=='preview')) == false) return;
+        global $conf, $INFO;
 
-        if (!isset($INFO['meta']['toc']['position'])) return;
         // check values
         // does not work in PHP 5.2.x
         //$topLv = ($INFO['meta']['toc']['toptoclevel']) ?: $conf['toptoclevel'];
         //$maxLv = ($INFO['meta']['toc']['maxtoclevel']) ?: $conf['maxtoclevel'];
-        if (empty($INFO['meta']['toc']['toptoclevel'])) {
-               $topLv = $conf['toptoclevel'];
-        } else $topLv = $INFO['meta']['toc']['toptoclevel'];
+        if (isset($INFO['meta']['toc']['toptoclevel'])) {
+               $topLv = $INFO['meta']['toc']['toptoclevel'];
+        } else $topLv = $conf['toptoclevel'];
 
-        if (empty($INFO['meta']['toc']['maxtoclevel'])) {
-               $maxLv = $conf['maxtoclevel'];
-        } else $maxLv = $INFO['meta']['toc']['maxtoclevel'];
+        if (isset($INFO['meta']['toc']['maxtoclevel'])) {
+               $maxLv = $INFO['meta']['toc']['maxtoclevel'];
+        } else $maxLv = $conf['maxtoclevel'];
 
 
         if (($topLv < 1) || ($topLv > 5)) $topLv = $conf['toptoclevel'];
         if (($maxLv < 1) || ($maxLv > 5)) $maxLv = $conf['maxtoclevel'];
-        if ($topLv > $maxLv) $maxLv = $topLv;
+        if (($maxLv != 0) && ($topLv > $maxLv)) $maxLv = $topLv;
 
         $conf['toptoclevel'] = $topLv;
         $conf['maxtoclevel'] = $maxLv;
@@ -85,7 +82,8 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
                 $tocPosition = -1;
             }
         } elseif (isset($INFO['meta']['toc']['position'])) {
-                $tocPosition = $INFO['meta']['toc']['position']; // = -1;
+                $tocPosition = $INFO['meta']['toc']['position'];
+                if ($tocPosition == 0) $tocPosition = $this->getConf('tocPosition');
         }
 
         // set PLACEHOLDER according the tocPostion config setting
