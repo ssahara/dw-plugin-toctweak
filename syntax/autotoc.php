@@ -44,39 +44,50 @@ class syntax_plugin_toctweak_autotoc extends DokuWiki_Syntax_Plugin {
         //  2: set PLACEHOLDER after the first level 1 heading (tocPosition config optipn)
         $tocPosition = (substr($data, 0, 2) == '{{') ? -1 : 0;
 
-        // strip and split markup
-        $matches = preg_split('/[:\s]+/', substr($data, 2, -2), 2);
-        $match = $matches[1];
-
-        // get TOC generation parameter, to be vefified in action component
-        if (preg_match('/\b(?:(\d+)?-(\d+)|(\d+))\b/', $match, $matches)) {
-            if (count($matches) == 4) {
-                $topLv = $matches[3];
-                $maxLv = null;
-            } else {
-                $topLv = $matches[1];
-                $maxLv = $matches[2];
-            }
-            $match = preg_replace('/\b'.$matches[0].'\b/', '', $match);
-        }
-
-        // get class name for TOC box, ensure excluded any malcious character
-        $tocClass = (preg_match('/[^ A-Za-z0-9_-]/', $match)) ? '' : trim($match);
-
         if ($mode == 'xhtml') {
             // Add PLACEHOLDER to cached page (will be replaced by action component)
             if ($tocPosition < 0) $renderer->doc .= $this->place_holder;
+            return true;
 
         } elseif ($mode == 'metadata') {
+            // strip and split markup
+            $matches = preg_split('/[:\s]+/', substr($data, 2, -2), 2);
+            $match = $matches[1];
+
+            // get TOC generation parameter
+            if (preg_match('/\b(?:(\d+)?-(\d+)|(\d+))\b/', $match, $matches)) {
+                if (count($matches) == 4) {
+                    $topLv = $matches[3];
+                } else {
+                    $topLv = $matches[1];
+                    $maxLv = $matches[2];
+                }
+                $match = preg_replace('/\b'.$matches[0].'\b/', '', $match);
+            }
+
+            // get class name for TOC box, ensure excluded any malcious character
+            if (!preg_match('/[^ A-Za-z0-9_-]/', $match)) {
+                $tocClass = trim($match);
+            }
+
             $renderer->meta['toc']['position'] = $tocPosition;
-            $renderer->meta['toc']['toptoclevel'] = $topLv;
-            $renderer->meta['toc']['maxtoclevel'] = $maxLv;
-            $renderer->meta['toc']['class'] = $tocClass;
+            if (isset($topLv)) {
+                if ($topLv == 0) $topLv = 1;
+                $topLv = ($topLv > 5) ? 5 : $topLv;
+                $renderer->meta['toc']['toptoclevel'] = $topLv;
+            }
+            if (isset($maxLv)) {
+                $maxLv = ($maxLv > 5) ? 5 : $maxLv;
+                $renderer->meta['toc']['maxtoclevel'] = $maxLv;
+            }
+            if (isset($tocClass)) {
+                $renderer->meta['toc']['class'] = $tocClass;
+            }
+            return true;
 
         } else {
             return false;
         }
-        return true;
     }
 
 }

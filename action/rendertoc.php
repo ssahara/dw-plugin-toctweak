@@ -31,23 +31,17 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
     public function _setTocControl(&$event) {
         global $conf, $INFO;
 
-        if (!isset($INFO['meta']['toc']['position'])) return;
         // check values
         // does not work in PHP 5.2.x
         //$topLv = ($INFO['meta']['toc']['toptoclevel']) ?: $conf['toptoclevel'];
         //$maxLv = ($INFO['meta']['toc']['maxtoclevel']) ?: $conf['maxtoclevel'];
-        if (empty($INFO['meta']['toc']['toptoclevel'])) {
-               $topLv = $conf['toptoclevel'];
-        } else $topLv = $INFO['meta']['toc']['toptoclevel'];
+        if (isset($INFO['meta']['toc']['toptoclevel'])) {
+               $topLv = $INFO['meta']['toc']['toptoclevel'];
+        } else $topLv = $conf['toptoclevel'];
 
-        if (empty($INFO['meta']['toc']['maxtoclevel'])) {
-               $maxLv = $conf['maxtoclevel'];
-        } else $maxLv = $INFO['meta']['toc']['maxtoclevel'];
-
-
-        if (($topLv < 1) || ($topLv > 5)) $topLv = $conf['toptoclevel'];
-        if (($maxLv < 1) || ($maxLv > 5)) $maxLv = $conf['maxtoclevel'];
-        if ($topLv > $maxLv) $maxLv = $topLv;
+        if (isset($INFO['meta']['toc']['maxtoclevel'])) {
+               $maxLv = $INFO['meta']['toc']['maxtoclevel'];
+        } else $maxLv = $conf['maxtoclevel'];
 
         $conf['toptoclevel'] = $topLv;
         $conf['maxtoclevel'] = $maxLv;
@@ -104,7 +98,7 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
             $html = tpl_toc(true);
             $event->data[1] = str_replace('<!-- TOC -->', $html, $event->data[1]);
             // add class to TOC box
-            if (!empty($INFO['meta']['toc']['class'])) {
+            if (isset($INFO['meta']['toc']['class'])) {
                 $search =  '<div id="dw__toc"';
                 $replace = $search.' class="'.$INFO['meta']['toc']['class'].'"';
                 $event->data[1] = str_replace($search, $replace, $event->data[1]);
@@ -116,7 +110,7 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
             $html = $this->tpl_inlinetoc(true);
             $event->data[1] = str_replace('<!-- INLINETOC -->', $html, $event->data[1]);
             // add class to TOC box
-            if (!empty($INFO['meta']['toc']['class'])) {
+            if (isset($INFO['meta']['toc']['class'])) {
                 $search =  '<div id="dw__inlinetoc"';
                 $replace = $search.' class="'.$INFO['meta']['toc']['class'].'"';
                 $event->data[1] = str_replace($search, $replace, $event->data[1]);
