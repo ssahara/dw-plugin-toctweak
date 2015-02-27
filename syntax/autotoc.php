@@ -70,7 +70,9 @@ class syntax_plugin_toctweak_autotoc extends DokuWiki_Syntax_Plugin {
                 $tocClass = trim($match);
             }
 
-            $renderer->meta['toc']['position'] = $tocPosition;
+            if ($tocPosition != 0) {
+                $renderer->meta['toc']['position'] = $tocPosition;
+            }
             if (isset($topLv)) {
                 if ($topLv == 0) $topLv = 1;
                 $topLv = ($topLv > 5) ? 5 : $topLv;

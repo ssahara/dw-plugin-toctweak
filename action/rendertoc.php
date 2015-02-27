@@ -32,9 +32,6 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
         global $conf, $INFO;
 
         // check values
-        // does not work in PHP 5.2.x
-        //$topLv = ($INFO['meta']['toc']['toptoclevel']) ?: $conf['toptoclevel'];
-        //$maxLv = ($INFO['meta']['toc']['maxtoclevel']) ?: $conf['maxtoclevel'];
         if (isset($INFO['meta']['toc']['toptoclevel'])) {
                $topLv = $INFO['meta']['toc']['toptoclevel'];
         } else $topLv = $conf['toptoclevel'];
@@ -77,7 +74,7 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
                 $tocPosition = -1;
             }
         } elseif (isset($INFO['meta']['toc']['position'])) {
-                $tocPosition = $INFO['meta']['toc']['position']; // = -1;
+                $tocPosition = $INFO['meta']['toc']['position'];
         }
 
         // set PLACEHOLDER according the tocPostion config setting
