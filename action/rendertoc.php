@@ -29,9 +29,7 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
      * Overwrites TOC-related elements of $conf array
      */
     public function _setTocControl(&$event) {
-        global $conf, $INFO, $ACT;
-        // TOC control should be changeable in only normal page
-        if (( empty($ACT) || ($ACT=='show') || ($ACT=='preview')) == false) return;
+        global $conf, $INFO;
 
         if (!isset($INFO['meta']['toc']['position'])) return;
         // check values
@@ -65,7 +63,7 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
     public function handlePostProcess(&$event, $param) {
         global $INFO, $ID, $TOC, $ACT;
         // TOC control should be changeable in only normal page
-        if (( empty($ACT) || ($ACT=='show') || ($ACT=='preview')) == false) return;
+        if (in_array($ACT, array('show', 'preview')) == false) return;
 
         // exclude sidebar, etc.
         if ($INFO['id'] != $ID) return;
@@ -132,7 +130,7 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
     public function handle_act_render(&$event, $param) {
         global $INFO, $ACT;
         // TOC control should be changeable in only normal page
-        if (( empty($ACT) || ($ACT=='show') || ($ACT=='preview')) == false) return;
+        if (in_array($ACT, array('show', 'preview')) == false) return;
         if (($INFO['meta']['toc']['position'] < 0)||($this->getConf('tocPosition') > 0)) {
                 $INFO['prependTOC'] = false;
         }
