@@ -33,7 +33,7 @@ class syntax_plugin_toctweak_autotoc extends DokuWiki_Syntax_Plugin {
         return array($state, $match);
     }
 
-    public function render($mode, Doku_Renderer $renderer, $indata) {
+    public function render($format, Doku_Renderer $renderer, $indata) {
         if (empty($indata)) return false;
         list($state, $data) = $indata;
 
@@ -44,12 +44,12 @@ class syntax_plugin_toctweak_autotoc extends DokuWiki_Syntax_Plugin {
         //  2: set PLACEHOLDER after the first level 1 heading (tocPosition config optipn)
         $tocPosition = (substr($data, 0, 2) == '{{') ? -1 : 0;
 
-        if ($mode == 'xhtml') {
+        if ($format == 'xhtml') {
             // Add PLACEHOLDER to cached page (will be replaced by action component)
             if ($tocPosition < 0) $renderer->doc .= $this->place_holder;
             return true;
 
-        } elseif ($mode == 'metadata') {
+        } elseif ($format == 'metadata') {
             // strip and split markup
             $matches = preg_split('/[:\s]+/', substr($data, 2, -2), 2);
             $match = $matches[1];
