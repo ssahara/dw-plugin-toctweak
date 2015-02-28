@@ -84,7 +84,7 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
                 $event->data[1] = preg_replace('#</(h[1-6])>#', "</$1>\n".'<!-- TOC -->', $event->data[1], 1);
                 break;
             case 2:
-                $event->data[1] = preg_replace('#</h1>/', "</h1>\n".'<!-- TOC -->', $event->data[1], 1);
+                $event->data[1] = preg_replace('#</h1>#', "</h1>\n".'<!-- TOC -->', $event->data[1], 1);
                 break;
         }
 
