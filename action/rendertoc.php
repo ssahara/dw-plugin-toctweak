@@ -31,17 +31,15 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
     public function _setTocControl(&$event) {
         global $conf, $INFO;
 
-        // check values
         if (isset($INFO['meta']['toc']['toptoclevel'])) {
-               $topLv = $INFO['meta']['toc']['toptoclevel'];
-        } else $topLv = $conf['toptoclevel'];
-
+            $conf['toptoclevel'] = $INFO['meta']['toc']['toptoclevel'];
+        }
         if (isset($INFO['meta']['toc']['maxtoclevel'])) {
-               $maxLv = $INFO['meta']['toc']['maxtoclevel'];
-        } else $maxLv = $conf['maxtoclevel'];
-
-        $conf['toptoclevel'] = $topLv;
-        $conf['maxtoclevel'] = $maxLv;
+            $conf['maxtoclevel'] = $INFO['meta']['toc']['maxtoclevel'];
+        }
+        if (isset($INFO['meta']['toc']['toptoclevel'])||isset($INFO['meta']['toc']['maxtoclevel'])) {
+            $conf['tocminheads'] = 1;
+        }
     }
  
     /**
