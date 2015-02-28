@@ -61,8 +61,8 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
 
         // exclude <dokuwiki>/inc/lang/<ISO>/preview.txt file.
         if ($ACT=='preview') {
-            if (preg_match('/<h\d.*>(.*?)<\/h\d>/', $event->data[1], $matches)) {
-                if ($matches[1] != hsc($INFO['meta']['title'])) return;
+            if (preg_match('#(<h[1-6]).*?>(.*?)</\1>#', $event->data[1], $matches)) {
+                if ($matches[2] != hsc($INFO['meta']['title'])) return;
             }
         } 
 
@@ -83,10 +83,10 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
                 //$event->data[1] = '<!-- TOC -->'.$event->data[1];
                 break;
             case 1:
-                $event->data[1] = preg_replace('/<\/(h[1-6])>/', "</$1>\n".'<!-- TOC -->', $event->data[1], 1);
+                $event->data[1] = preg_replace('#</(h[1-6])>#', "</$1>\n".'<!-- TOC -->', $event->data[1], 1);
                 break;
             case 2:
-                $event->data[1] = preg_replace('/<\/h1>/', "</h1>\n".'<!-- TOC -->', $event->data[1], 1);
+                $event->data[1] = preg_replace('#</h1>/', "</h1>\n".'<!-- TOC -->', $event->data[1], 1);
                 break;
         }
 
