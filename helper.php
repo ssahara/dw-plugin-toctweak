@@ -3,7 +3,6 @@
  * DokuWiki plugin TOC Tweak;
  */
 if(!defined('DOKU_INC')) die();
-if (!defined('DOKU_PLUGIN')) define('DOKU_PLUGIN', DOKU_INC.'lib/plugins/');
 
 class helper_plugin_toctweak extends DokuWiki_Plugin {
 
