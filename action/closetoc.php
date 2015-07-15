@@ -8,8 +8,6 @@
  */
 
 if(!defined('DOKU_INC')) die();
-if(!defined('DOKU_PLUGIN')) define('DOKU_PLUGIN', DOKU_INC.'lib/plugins/');
-require_once(DOKU_PLUGIN.'action.php');
 
 class action_plugin_toctweak_closetoc extends DokuWiki_Action_Plugin {
 
@@ -21,7 +19,7 @@ class action_plugin_toctweak_closetoc extends DokuWiki_Action_Plugin {
     /**
      * Exports configuration settings to $JSINFO
      */
-    public function _exportToJSINFO(&$event) {
+    public function _exportToJSINFO(Doku_Event $event) {
         global $JSINFO, $INFO, $ACT;
         // TOC control should be changeable in only normal page
         if (( empty($ACT) || ($ACT=='show') || ($ACT=='preview')) == false) return;

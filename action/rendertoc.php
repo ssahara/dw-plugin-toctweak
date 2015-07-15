@@ -11,8 +11,6 @@
  */
 
 if(!defined('DOKU_INC')) die();
-if(!defined('DOKU_PLUGIN')) define('DOKU_PLUGIN',DOKU_INC.'lib/plugins/');
-require_once(DOKU_PLUGIN.'action.php');
 
 class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
 
@@ -28,7 +26,7 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
     /**
      * Overwrites TOC-related elements of $conf array
      */
-    public function _setTocControl(&$event) {
+    public function _setTocControl(Doku_Event $event) {
         global $conf, $INFO;
 
         if (isset($INFO['meta']['toc']['toptoclevel'])) {
@@ -49,7 +47,7 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
      *  1: set PLACEHOLDER after the first heading (tocPosition config option)
      *  2: set PLACEHOLDER after the first level 1 heading (tocPosition config optipn)
      */
-    public function handlePostProcess(&$event, $param) {
+    public function handlePostProcess(Doku_Event $event, $param) {
         global $INFO, $ID, $TOC, $ACT;
         // TOC control should be changeable in only normal page
         if (in_array($ACT, array('show', 'preview')) == false) return;
@@ -116,7 +114,7 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
     /**
      * Make sure the other TOC is not printed
      */
-    public function handle_act_render(&$event, $param) {
+    public function handle_act_render(Doku_Event $event, $param) {
         global $INFO, $ACT;
         // TOC control should be changeable in only normal page
         if (in_array($ACT, array('show', 'preview')) == false) return;

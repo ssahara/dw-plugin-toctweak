@@ -8,8 +8,6 @@
  */
 
 if (!defined('DOKU_INC')) die();
-if (!defined('DOKU_PLUGIN')) define('DOKU_PLUGIN',DOKU_INC.'lib/plugins/');
-require_once(DOKU_PLUGIN.'syntax.php');
 
 class syntax_plugin_toctweak_closetoc extends DokuWiki_Syntax_Plugin {
 
@@ -21,7 +19,7 @@ class syntax_plugin_toctweak_closetoc extends DokuWiki_Syntax_Plugin {
 
     public function connectTo($mode) {
         $this->Lexer->addSpecialPattern($this->special_pattern,$mode,
-            implode('_', array('plugin',$this->getPluginName(),$this->getPluginComponent(),))
+            substr(get_class($this), 7)
         );
     }
 
