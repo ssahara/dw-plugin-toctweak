@@ -11,8 +11,6 @@
 
 if(!defined('DOKU_INC')) die();
 
-require_once(DOKU_PLUGIN.'syntax.php');
-
 class syntax_plugin_toctweak_autotoc extends DokuWiki_Syntax_Plugin {
 
     protected $special_pattern = '~~TOC:?.*?~~';
