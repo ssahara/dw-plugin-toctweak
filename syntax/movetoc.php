@@ -11,7 +11,9 @@ require_once(dirname(__FILE__).'/autotoc.php');
 
 class syntax_plugin_toctweak_movetoc extends syntax_plugin_toctweak_autotoc {
 
-    protected $special_pattern = '{{TOC:?.*?}}';
+    protected $pattern = array(
+        5 => '{{TOC:?.*?}}',  // DOKU_LEXER_SPECIAL
+    );
     protected $place_holder = '<!-- TOC -->';
 
 }
