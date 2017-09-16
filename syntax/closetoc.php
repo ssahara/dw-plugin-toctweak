@@ -22,29 +22,31 @@ class syntax_plugin_toctweak_closetoc extends DokuWiki_Syntax_Plugin {
     }
 
 
-    public function getType() { return 'substition'; }
-    public function getPType(){ return 'block'; }
-    public function getSort() { return 990; }
+    function getType() { return 'substition'; }
+    function getPType(){ return 'block'; }
+    function getSort() { return 990; }
 
     /**
      * Connect pattern to lexer
      */
-    public function connectTo($mode) {
+    function connectTo($mode) {
         $this->Lexer->addSpecialPattern($this->pattern[5], $mode, $this->mode);
     }
 
     /**
      * Handle the match
      */
-    public function handle($match, $state, $pos, Doku_Handler $handler) {
-        return array($state, $match);
+    function handle($match, $state, $pos, Doku_Handler $handler) {
+        global $ID;
+        return array($ID);
     }
 
     /**
      * Create output
      */
-    public function render($format, Doku_Renderer $renderer, $data) {
-        if ($format == 'metadata') {
+    function render($format, Doku_Renderer $renderer, $data) {
+        global $ID;
+        if (($format == 'metadata') && ($data[0] == $ID)) {
              $renderer->meta['toc']['initial_state'] = -1;
         }
         return true;
