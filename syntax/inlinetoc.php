@@ -14,7 +14,9 @@ require_once(dirname(__FILE__).'/autotoc.php');
 
 class syntax_plugin_toctweak_inlinetoc extends syntax_plugin_toctweak_autotoc {
 
-    protected $special_pattern = '{{INLINETOC:?.*?}}';
+    protected $pattern = array(
+        5 => '{{INLINETOC:?.*?}}',  // DOKU_LEXER_SPECIAL
+    );
     protected $place_holder = '<!-- INLINETOC -->';
 
 }

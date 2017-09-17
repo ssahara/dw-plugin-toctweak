@@ -13,23 +13,38 @@ if(!defined('DOKU_INC')) die();
 
 class syntax_plugin_toctweak_autotoc extends DokuWiki_Syntax_Plugin {
 
-    protected $special_pattern = '~~TOC:?.*?~~';
-    protected $place_holder = '<!-- TOC -->'; // dummy for this compo
+    protected $mode;
+    protected $pattern = array(
+        5 => '~~TOC:?.*?~~',  // DOKU_LEXER_SPECIAL
+    );
+    protected $place_holder = '<!-- TOC -->';
+
+    function __construct() {
+        $this->mode = substr(get_class($this), 7); // drop 'syntax_' from class name
+    }
+
 
     public function getType() { return 'substition'; }
     public function getPType(){ return 'block'; }
     public function getSort() { return 30; }
 
+    /**
+     * Connect pattern to lexer
+     */
     public function connectTo($mode) {
-        $this->Lexer->addSpecialPattern($this->special_pattern,$mode,
-            substr(get_class($this), 7)
-        );
+        $this->Lexer->addSpecialPattern($this->pattern[5], $mode, $this->mode);
     }
 
+    /**
+     * Handle the match
+     */
     public function handle($match, $state, $pos, Doku_Handler $handler) {
         return array($state, $match);
     }
 
+    /**
+     * Create output
+     */
     public function render($format, Doku_Renderer $renderer, $indata) {
         if (empty($indata)) return false;
         list($state, $data) = $indata;

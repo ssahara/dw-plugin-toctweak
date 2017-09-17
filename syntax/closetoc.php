@@ -11,24 +11,42 @@ if (!defined('DOKU_INC')) die();
 
 class syntax_plugin_toctweak_closetoc extends DokuWiki_Syntax_Plugin {
 
-    protected $special_pattern = '~~CLOSETOC~~';
+    protected $mode;
+    protected $pattern = array();
 
-    public function getType() { return 'substition'; }
-    public function getPType(){ return 'block'; }
-    public function getSort() { return 990; }
+    function __construct() {
+        $this->mode = substr(get_class($this), 7); // drop 'syntax_' from class name
 
-    public function connectTo($mode) {
-        $this->Lexer->addSpecialPattern($this->special_pattern,$mode,
-            substr(get_class($this), 7)
-        );
+        // syntax patterns
+        $this->pattern[5] = '~~CLOSETOC~~'; // DOKU_LEXER_SPECIAL
     }
 
-    public function handle($match, $state, $pos, Doku_Handler $handler) {
-        return array($state, $match);
+
+    function getType() { return 'substition'; }
+    function getPType(){ return 'block'; }
+    function getSort() { return 990; }
+
+    /**
+     * Connect pattern to lexer
+     */
+    function connectTo($mode) {
+        $this->Lexer->addSpecialPattern($this->pattern[5], $mode, $this->mode);
     }
 
-    public function render($format, Doku_Renderer $renderer, $data) {
-        if ($format == 'metadata') {
+    /**
+     * Handle the match
+     */
+    function handle($match, $state, $pos, Doku_Handler $handler) {
+        global $ID;
+        return array($ID);
+    }
+
+    /**
+     * Create output
+     */
+    function render($format, Doku_Renderer $renderer, $data) {
+        global $ID;
+        if (($format == 'metadata') && ($data[0] == $ID)) {
              $renderer->meta['toc']['initial_state'] = -1;
         }
         return true;
