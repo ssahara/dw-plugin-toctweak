@@ -14,40 +14,57 @@ if(!defined('DOKU_INC')) die();
 
 class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
 
+    protected $toptoclevel; // highest heading level which can appear in table of contents
+    protected $maxtoclevel; // lowest heading level to include in table of contents
+    protected $tocminheads; // minimum amount of headlines to show table of contents
+
+
     /**
      * Register event handlers
      */
-    public function register(Doku_Event_Handler $controller) {
-        $controller->register_hook('DOKUWIKI_STARTED', 'BEFORE', $this, '_setTocControl');
+    function register(Doku_Event_Handler $controller) {
+        $controller->register_hook('PARSER_CACHE_USE', 'BEFORE', $this, '_setTocControl', array());
         $controller->register_hook('RENDERER_CONTENT_POSTPROCESS', 'BEFORE', $this, 'handlePostProcess', array());
         $controller->register_hook('TPL_ACT_RENDER', 'BEFORE', $this, 'handle_act_render', array());
     }
 
     /**
-     * Overwrites TOC-related elements of $conf array
+     * PARSER_CACHE_USE
+     * Overwrites TOC-related config parameters
      */
-    public function _setTocControl(Doku_Event $event) {
-        global $conf, $INFO;
+    function _setTocControl(Doku_Event $event, $param) {  // _setTocControl
+        global $conf;
 
-        if (isset($INFO['meta']['toc']['toptoclevel'])) {
-            $conf['toptoclevel'] = $INFO['meta']['toc']['toptoclevel'];
+        $cache =& $event->data;
+        if (!isset($cache->page)) return;
+
+        // preserve site global configuration parameters as class properties
+        $keys = array('toptoclevel', 'maxtoclevel', 'tocminheads');
+        foreach ($keys as $k) { 
+            if ($this->$k == null) $this->$k = $conf[$k]; 
         }
-        if (isset($INFO['meta']['toc']['maxtoclevel'])) {
-            $conf['maxtoclevel'] = $INFO['meta']['toc']['maxtoclevel'];
-        }
-        if (isset($INFO['meta']['toc']['toptoclevel'])||isset($INFO['meta']['toc']['maxtoclevel'])) {
-            $conf['tocminheads'] = 1;
-        }
+
+        // retrieve metadata
+        $topLv = p_get_metadata($cache->page, 'toc toptoclevel', METADATA_DONT_RENDER);
+        $maxLv = p_get_metadata($cache->page, 'toc maxtoclevel', METADATA_DONT_RENDER);
+
+        // modify $conf with metadata if available, otherwise restore to original value
+        $conf['toptoclevel'] = $topLv ?: $this->toptoclevel;
+        $conf['maxtoclevel'] = $maxLv ?: $this->maxtoclevel;
+
+        // show TOC whenever possible if toc parameters have stored in metadata storage
+        $conf['tocminheads'] = ($topLv || $maxLv) ? 1 : $this->tocminheads;
     }
- 
+
     /**
+     * RENDERER_CONTENT_POSTPROCESS
      * render TOC according to $tocPosition
      * -1: PLACEHOLDER set by syntax component
      *  0: default. TOC will not moved (tocPostion config option)
      *  1: set PLACEHOLDER after the first heading (tocPosition config option)
      *  2: set PLACEHOLDER after the first level 1 heading (tocPosition config optipn)
      */
-    public function handlePostProcess(Doku_Event $event, $param) {
+    function handlePostProcess(Doku_Event $event, $param) {
         global $INFO, $ID, $TOC, $ACT;
         // TOC control should be changeable in only normal page
         if (in_array($ACT, array('show', 'preview')) == false) return;
@@ -112,9 +129,10 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
     }
 
     /**
+     * TPL_ACT_RENDER
      * Make sure the other TOC is not printed
      */
-    public function handle_act_render(Doku_Event $event, $param) {
+    function handle_act_render(Doku_Event $event, $param) {
         global $INFO, $ACT;
         // TOC control should be changeable in only normal page
         if (in_array($ACT, array('show', 'preview')) == false) return;
