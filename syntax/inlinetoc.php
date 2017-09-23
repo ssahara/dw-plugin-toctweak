@@ -17,6 +17,5 @@ class syntax_plugin_toctweak_inlinetoc extends syntax_plugin_toctweak_movetoc {
     protected $pattern = array(
         5 => '{{INLINETOC:?.*?}}',  // DOKU_LEXER_SPECIAL
     );
-    protected $place_holder = '<!-- INLINETOC -->';
 
 }

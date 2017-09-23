@@ -16,7 +16,6 @@ class syntax_plugin_toctweak_movetoc extends DokuWiki_Syntax_Plugin {
     protected $pattern = array(
         5 => '{{TOC:?.*?}}',  // DOKU_LEXER_SPECIAL
     );
-    protected $place_holder = '<!-- TOC -->';
 
     function __construct() {
         $this->mode = substr(get_class($this), 7); // drop 'syntax_' from class name
@@ -38,59 +37,81 @@ class syntax_plugin_toctweak_movetoc extends DokuWiki_Syntax_Plugin {
      * Handle the match
      */
     function handle($match, $state, $pos, Doku_Handler $handler) {
-        return array($state, $match);
+
+        // strip and split markup
+        $params = explode(' ', substr($match, strpos($this->pattern[5],':')+1, -2));
+
+        foreach ($params as $token) {
+            if (empty($token)) continue;
+
+            // get TOC generation parameters
+            if (preg_match('/^(?:(\d+)-(\d+)|^(\-?\d+))$/', $token, $matches)) {
+                if (count($matches) == 4) {
+                    if ($matches[3] > 0) {
+                        $topLv = $matches[3];
+                    } else {
+                        $maxLv = abs($matches[3]);
+                    }
+                } else {
+                        $topLv = $matches[1];
+                        $maxLv = $matches[2];
+                }
+                if (isset($topLv)) {
+                    $topLv = ($topLv < 1) ? 1 : $topLv;
+                    $topLv = ($topLv > 5) ? 5 : $topLv;
+                }
+                if (isset($maxLv)) {
+                    $maxLv = ($maxLv > 5) ? 5 : $maxLv;
+                }
+                continue;
+            }
+
+            // get class name for TOC box, ensure excluded any malcious character
+            if (!preg_match('/[^ A-Za-z0-9_-]/', $token)) {
+                $classes[] = $token;
+            }
+        }
+        if (!empty($classes)) {
+            $tocClass = implode(' ', $classes);
+        }
+
+        return $data = array($ID, $topLv, $maxLv, $tocClass);
     }
 
     /**
      * Create output
      */
-    function render($format, Doku_Renderer $renderer, $indata) {
-        if (empty($indata)) return false;
-        list($state, $data) = $indata;
+    function render($format, Doku_Renderer $renderer, $data) {
+        global $conf;
+
+        list($id, $topLv, $maxLv, $tocClass) = $data;
 
         // get where and how the TOC should be located in the page
         // -1: PLACEHOLDER set by syntax component
         //  0: default. TOC will not moved (tocPostion config option)
         //  1: set PLACEHOLDER after the first heading (tocPosition config option)
         //  2: set PLACEHOLDER after the first level 1 heading (tocPosition config optipn)
-        $tocPosition = (substr($data, 0, 2) == '{{') ? -1 : 0;
+        $tocPosition = -1;
+
+        // custom toc
+        $lv['top'] = (isset($topLv)) ? max($conf['toptoclevel'], $topLv) : $conf['toptoclevel'];
+        $lv['max'] = (isset($maxLv)) ? min($conf['maxtoclevel'], $maxLv) : $conf['maxtoclevel'];
 
         if ($format == 'xhtml') {
             // Add PLACEHOLDER to cached page (will be replaced by action component)
-            if ($tocPosition < 0) $renderer->doc .= $this->place_holder;
+            $placeHolder = '<!-- '.strstr(substr($this->pattern[5],2),':',1)
+                          .' '.$lv['top'].' '.$lv['max'].' -->';
+            $renderer->doc .= $placeHolder . DOKU_LF;
             return true;
 
         } elseif ($format == 'metadata') {
-            // strip and split markup
-            $matches = preg_split('/[:\s]+/', substr($data, 2, -2), 2);
-            $match = $matches[1];
 
-            // get TOC generation parameter
-            if (preg_match('/\b(?:(\d+)?-(\d+)|(\d+))\b/', $match, $matches)) {
-                if (count($matches) == 4) {
-                    $topLv = $matches[3];
-                } else {
-                    $topLv = $matches[1];
-                    $maxLv = $matches[2];
-                }
-                $match = preg_replace('/\b'.$matches[0].'\b/', '', $match);
-            }
+            $renderer->meta['toc']['position'] = $tocPosition;
 
-            // get class name for TOC box, ensure excluded any malcious character
-            if (!preg_match('/[^ A-Za-z0-9_-]/', $match)) {
-                $tocClass = trim($match);
-            }
-
-            if ($tocPosition != 0) {
-                $renderer->meta['toc']['position'] = $tocPosition;
-            }
             if (isset($topLv)) {
-                if ($topLv == 0) $topLv = 1;
-                $topLv = ($topLv > 5) ? 5 : $topLv;
                 $renderer->meta['toc']['toptoclevel'] = $topLv;
             }
             if (isset($maxLv)) {
-                $maxLv = ($maxLv > 5) ? 5 : $maxLv;
                 $renderer->meta['toc']['maxtoclevel'] = $maxLv;
             }
             if (isset($tocClass)) {
