@@ -24,8 +24,8 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
      */
     function register(Doku_Event_Handler $controller) {
         $controller->register_hook('PARSER_CACHE_USE', 'BEFORE', $this, '_setTocControl', array());
-        $controller->register_hook('RENDERER_CONTENT_POSTPROCESS', 'BEFORE', $this, 'handlePostProcess', array());
         $controller->register_hook('TPL_ACT_RENDER', 'BEFORE', $this, 'handle_act_render', array());
+        $controller->register_hook('RENDERER_CONTENT_POSTPROCESS', 'BEFORE', $this, 'handlePostProcess', array());
     }
 
     /**
@@ -57,6 +57,19 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
     }
 
     /**
+     * TPL_ACT_RENDER
+     * Make sure the other TOC is not printed
+     */
+    function handle_act_render(Doku_Event $event, $param) {
+        global $INFO, $ACT;
+        // TOC control should be changeable in only normal page
+        if (in_array($ACT, array('show', 'preview')) == false) return;
+        if (($INFO['meta']['toc']['position'] < 0)||($this->getConf('tocPosition') > 0)) {
+                $INFO['prependTOC'] = false;
+        }
+    }
+
+    /**
      * RENDERER_CONTENT_POSTPROCESS
      * render TOC according to $tocPosition
      * -1: PLACEHOLDER set by syntax component
@@ -82,8 +95,7 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
         // TOC Position
         $tocPosition = $this->getConf('tocPosition');
         if ($ACT=='preview') {
-            if ( (strpos($event->data[1], '<!-- TOC -->')) ||
-                 (strpos($event->data[1], '<!-- INLINETOC -->')) ) {
+            if (preg_match('#<!-- (?:TOC|INLINETOC) .*?-->#', $event->data[1])) {
                 $tocPosition = -1;
             }
         } elseif (isset($INFO['meta']['toc']['position'])) {
@@ -104,9 +116,9 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
         }
 
         // replace PLACEHOLDER1s with tpl_toc() HTML output
-        if (strpos($event->data[1], '<!-- TOC -->') !== false) {
+        if (preg_match('#<!-- TOC .*?-->#', $event->data[1])) {
             $html = tpl_toc(true);
-            $event->data[1] = str_replace('<!-- TOC -->', $html, $event->data[1]);
+            $event->data[1] = preg_replace('#<!-- TOC .*?-->#', $html, $event->data[1]);
             // add class to TOC box
             if (isset($INFO['meta']['toc']['class'])) {
                 $search =  '<div id="dw__toc"';
@@ -116,28 +128,15 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
         }
 
         // replace PLACEHOLDER2s with tpl_inlinetoc() HTML output
-        if (strpos($event->data[1], '<!-- INLINETOC -->') !== false) {
+        if (preg_match('#<!-- INLINETOC .*?-->#', $event->data[1])) {
             $html = $this->tpl_inlinetoc(true);
-            $event->data[1] = str_replace('<!-- INLINETOC -->', $html, $event->data[1]);
+            $event->data[1] = preg_replace('#<!-- INLINETOC .*?-->#', $html, $event->data[1]);
             // add class to TOC box
             if (isset($INFO['meta']['toc']['class'])) {
                 $search =  '<div id="dw__inlinetoc"';
                 $replace = $search.' class="'.$INFO['meta']['toc']['class'].'"';
                 $event->data[1] = str_replace($search, $replace, $event->data[1]);
             }
-        }
-    }
-
-    /**
-     * TPL_ACT_RENDER
-     * Make sure the other TOC is not printed
-     */
-    function handle_act_render(Doku_Event $event, $param) {
-        global $INFO, $ACT;
-        // TOC control should be changeable in only normal page
-        if (in_array($ACT, array('show', 'preview')) == false) return;
-        if (($INFO['meta']['toc']['position'] < 0)||($this->getConf('tocPosition') > 0)) {
-                $INFO['prependTOC'] = false;
         }
     }
 
