@@ -45,8 +45,23 @@ class syntax_plugin_toctweak_autotoc extends DokuWiki_Syntax_Plugin {
 
             // get TOC generation parameters
             if (preg_match('/^(?:(\d+)-(\d+)|^(\-?\d+))$/', $token, $matches)) {
-                $topLv = $matches[1] ?: $matches[3];
-                $maxLv = $matches[2] ?: $matches[3];
+                if (count($matches) == 4) {
+                    if ($matches[3] > 0) {
+                        $topLv = $matches[3];
+                    } else {
+                        $maxLv = abs($matches[3]);
+                    }
+                } else {
+                        $topLv = $matches[1];
+                        $maxLv = $matches[2];
+                }
+                if (isset($topLv)) {
+                    $topLv = ($topLv < 1) ? 1 : $topLv;
+                    $topLv = ($topLv > 5) ? 5 : $topLv;
+                }
+                if (isset($maxLv)) {
+                    $maxLv = ($maxLv > 5) ? 5 : $maxLv;
+                }
                 continue;
             }
 
@@ -75,12 +90,9 @@ class syntax_plugin_toctweak_autotoc extends DokuWiki_Syntax_Plugin {
 
             // store matadata to overwrite $conf in PARSER_CACHE_USE event handler
             if (isset($topLv)) {
-                if ($topLv == 0) $topLv = 1;
-                $topLv = ($topLv > 5) ? 5 : $topLv;
                 $renderer->meta['toc']['toptoclevel'] = $topLv;
             }
             if (isset($maxLv)) {
-                $maxLv = ($maxLv > 5) ? 5 : $maxLv;
                 $renderer->meta['toc']['maxtoclevel'] = $maxLv;
             }
             if (isset($tocClass)) {
