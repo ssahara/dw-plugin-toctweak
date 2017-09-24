@@ -100,23 +100,14 @@ class syntax_plugin_toctweak_movetoc extends DokuWiki_Syntax_Plugin {
         if ($format == 'xhtml') {
             // Add PLACEHOLDER to cached page (will be replaced by action component)
             $placeHolder = '<!-- '.strstr(substr($this->pattern[5],2),':',1)
-                          .' '.$lv['top'].' '.$lv['max'].' -->';
+                          .' '.$lv['top'].' '.$lv['max'].' '.$tocClass
+                          .' -->';
             $renderer->doc .= $placeHolder . DOKU_LF;
             return true;
 
         } elseif ($format == 'metadata') {
 
             $renderer->meta['toc']['position'] = $tocPosition;
-
-            if (isset($topLv)) {
-                $renderer->meta['toc']['toptoclevel'] = $topLv;
-            }
-            if (isset($maxLv)) {
-                $renderer->meta['toc']['maxtoclevel'] = $maxLv;
-            }
-            if (isset($tocClass)) {
-                $renderer->meta['toc']['class'] = $tocClass;
-            }
             return true;
 
         } else {
