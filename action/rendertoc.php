@@ -115,52 +115,93 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
                 break;
         }
 
-        // replace PLACEHOLDER1s with tpl_toc() HTML output
-        if (preg_match('#<!-- TOC .*?-->#', $event->data[1])) {
-            $html = tpl_toc(true);
-            $event->data[1] = preg_replace('#<!-- TOC .*?-->#', $html, $event->data[1]);
-            // add class to TOC box
-            if (isset($INFO['meta']['toc']['class'])) {
-                $search =  '<div id="dw__toc"';
-                $replace = $search.' class="'.$INFO['meta']['toc']['class'].'"';
-                $event->data[1] = str_replace($search, $replace, $event->data[1]);
-            }
-        }
+        // replace PLACEHOLDERs
+        $placeHolder = '#<!-- (TOC|INLINETOC)(?: (\d))?(?: (\d))?(?: (.*?))? -->#'; // regex
+        if (preg_match_all($placeHolder, $event->data[1], $tokens, PREG_SET_ORDER)) {
 
-        // replace PLACEHOLDER2s with tpl_inlinetoc() HTML output
-        if (preg_match('#<!-- INLINETOC .*?-->#', $event->data[1])) {
-            $html = $this->tpl_inlinetoc(true);
-            $event->data[1] = preg_replace('#<!-- INLINETOC .*?-->#', $html, $event->data[1]);
-            // add class to TOC box
-            if (isset($INFO['meta']['toc']['class'])) {
-                $search =  '<div id="dw__inlinetoc"';
-                $replace = $search.' class="'.$INFO['meta']['toc']['class'].'"';
-                $event->data[1] = str_replace($search, $replace, $event->data[1]);
+            foreach ($tokens as $token) {
+
+                if (!isset($token[2])) $token[2] = $INFO['meta']['toc']['toptoclevel'] ?: $this->toptoclevel;
+                if (!isset($token[3])) $token[3] = $INFO['meta']['toc']['maxtoclevel'] ?: $this->maxtoclevel;
+                if (!isset($token[4])) $token[4] = $INFO['meta']['toc']['class'];
+
+                switch ($token[1]) {
+                    case 'TOC':
+                        $html = $this->html_toc($token[2], $token[3]);
+                        if (!empty($token[4])) {
+                            $search =  '<div id="dw__toc"';
+                            $replace = $search.' class="'.trim($token[4]).'"';
+                            $html = str_replace($search, $replace, $html);
+                        }
+                        break;
+                    case 'INLINETOC':
+                        $html = $this->html_inlinetoc($token[2], $token[3]);
+                        if (!empty($token[4])) {
+                            $search =  '<div id="dw__inlinetoc"';
+                            $replace = $search.' class="'.trim($token[4]).'"';
+                            $html = str_replace($search, $replace, $html);
+                        }
+                        break;
+                }
+                $event->data[1] = str_replace($token[0], $html, $event->data[1]);
             }
         }
     }
 
     /**
-     * Places the Inline TOC where the function is called
+     * Return html of customized TOC
      */
-    function tpl_inlinetoc($return = false) {
-        global $lang, $TOC;
-        if (is_array($TOC)) {
+    private function html_toc($topLv, $maxLv) {
+        global $conf, $TOC;
+        if (!count($TOC)) return '';
+        $items = $this->trim_toc($TOC, $topLv, $maxLv);
+        $html = html_TOC($items); // use function in inc/html.php
+        return $html;
+    }
+
+    private function trim_toc(array $toc, $topLv, $maxLv) {
+        global $conf;
+
+        $items = array();
+        foreach ($toc as $item) {
+            // get header level from original toc level
+            $headerLv = $item['level'] + $conf['toptoclevel'] -1;
+            // get new toc level from header level
+            $tocLv = $headerLv - $topLv +1;
+
+            if (($headerLv < $topLv) || ($headerLv > $maxLv)) {
+                continue;
+            }
+            $item['level'] = $tocLv;
+            $items[] = $item;
+        }
+        return $items;
+    }
+
+    /**
+     * Return html of customized INLINETOC
+     */
+    private function html_inlinetoc($topLv, $maxLv) {
+        global $conf, $TOC;
+
+        if (!count($TOC)) return '';
+
+        $items = $this->trim_toc($TOC, $topLv, $maxLv);
+
+        if (!empty($items)) {
             $html = '<!-- INLINETOC START -->'.DOKU_LF;
             $html.= '<div id="dw__inlinetoc">'.DOKU_LF;
             $html.= '<h3>'.$lang['toc'].'</h3>';
-            $html.= html_buildlist($TOC, 'inlinetoc', array($this, 'html_list_inlinetoc'));
+            $html.= html_buildlist($items, 'inlinetoc', array($this, 'html_list_inlinetoc'));
             $html.= '</div>'.DOKU_LF;
             $html.= '<!-- INLINETOC END -->'.DOKU_LF;
         }
-        if ($return) return $html;
-        echo $html;
-        return '';
+        return $html;
     }
 
     /**
-     * Callback for html_buildlist.
-     * Builds list items with inlinetoc printable class 
+     * Callback for html_buildlist called from $this->html_inlinetoc()
+     * Builds list items with inlinetoc printable class
      */
     function html_list_inlinetoc($item) {
         if (isset($item['hid'])) {
