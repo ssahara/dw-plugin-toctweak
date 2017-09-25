@@ -37,6 +37,7 @@ class syntax_plugin_toctweak_movetoc extends DokuWiki_Syntax_Plugin {
      * Handle the match
      */
     function handle($match, $state, $pos, Doku_Handler $handler) {
+        global $ID;
 
         // strip and split markup
         $params = explode(' ', substr($match, strpos($this->pattern[5],':')+1, -2));
@@ -82,9 +83,12 @@ class syntax_plugin_toctweak_movetoc extends DokuWiki_Syntax_Plugin {
      * Create output
      */
     function render($format, Doku_Renderer $renderer, $data) {
-        global $conf;
+        global $ID, $conf;
 
         list($id, $topLv, $maxLv, $tocClass) = $data;
+
+        // skip calls that belong to different page (eg. included pages)
+        if ($id != $ID) return false;
 
         // get where and how the TOC should be located in the page
         // -1: PLACEHOLDER set by syntax component
@@ -93,26 +97,27 @@ class syntax_plugin_toctweak_movetoc extends DokuWiki_Syntax_Plugin {
         //  2: set PLACEHOLDER after the first level 1 heading (tocPosition config optipn)
         $tocPosition = -1;
 
-        // custom toc
-        $lv['top'] = (isset($topLv)) ? max($conf['toptoclevel'], $topLv) : $conf['toptoclevel'];
-        $lv['max'] = (isset($maxLv)) ? min($conf['maxtoclevel'], $maxLv) : $conf['maxtoclevel'];
+        switch ($format) {
+            case 'xhtml':
+                // Add PLACEHOLDER to cached page (will be replaced by action component)
+                $lv['top'] = (isset($topLv))
+                    ? max($conf['toptoclevel'], $topLv)
+                    : $conf['toptoclevel'];
+                $lv['max'] = (isset($maxLv))
+                    ? min($conf['maxtoclevel'], $maxLv)
+                    : $conf['maxtoclevel'];
 
-        if ($format == 'xhtml') {
-            // Add PLACEHOLDER to cached page (will be replaced by action component)
-            $placeHolder = '<!-- '.strstr(substr($this->pattern[5],2),':',1)
-                          .' '.$lv['top'].' '.$lv['max'].' '.$tocClass
-                          .' -->';
-            $renderer->doc .= $placeHolder . DOKU_LF;
-            return true;
+                $placeHolder = '<!-- '.strstr(substr($this->pattern[5],2),':',1)
+                              .' '.$lv['top'].' '.$lv['max'].' '.$tocClass
+                              .' -->';
+                $renderer->doc .= $placeHolder . DOKU_LF;
+                return true;
 
-        } elseif ($format == 'metadata') {
-
-            $renderer->meta['toc']['position'] = $tocPosition;
-            return true;
-
-        } else {
-            return false;
+            case 'metadata':
+                $renderer->meta['toc']['position'] = $tocPosition;
+                return true;
         }
+        return false;
     }
 
 }

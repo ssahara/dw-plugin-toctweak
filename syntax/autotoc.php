@@ -81,27 +81,38 @@ class syntax_plugin_toctweak_autotoc extends DokuWiki_Syntax_Plugin {
      * Create output
      */
     function render($format, Doku_Renderer $renderer, $data) {
-        global $ID;
+        global $ID, $conf;
 
         list($id, $topLv, $maxLv, $tocClass) = $data;
 
         // skip calls that belong to different page (eg. included pages)
-        if (($format == 'metadata') && ($id == $ID)) {
+        if ($id != $ID) return false;
 
-            // store matadata to overwrite $conf in PARSER_CACHE_USE event handler
-            if (isset($topLv)) {
-                $renderer->meta['toc']['toptoclevel'] = $topLv;
-            }
-            if (isset($maxLv)) {
-                $renderer->meta['toc']['maxtoclevel'] = $maxLv;
-            }
-            if (isset($tocClass)) {
-                $renderer->meta['toc']['class'] = $tocClass;
-            }
-            return true;
-        } else {
-            return false;
+        switch ($format) {
+            case 'xhtml':
+                // force set $conf
+                if (isset($topLv)) {
+                    $conf['toptoclevel'] = $topLv;
+                }
+                if (isset($maxLv)) {
+                    $conf['maxtoclevel'] = $maxLv;
+                }
+                return true;
+
+            case 'metadata':
+                // store matadata to overwrite $conf in PARSER_CACHE_USE event handler
+                if (isset($topLv)) {
+                    $renderer->meta['toc']['toptoclevel'] = $topLv;
+                }
+                if (isset($maxLv)) {
+                    $renderer->meta['toc']['maxtoclevel'] = $maxLv;
+                }
+                if (isset($tocClass)) {
+                    $renderer->meta['toc']['class'] = $tocClass;
+                }
+                return true;
         }
+        return false;
     }
 
 }
