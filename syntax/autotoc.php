@@ -46,10 +46,10 @@ class syntax_plugin_toctweak_autotoc extends DokuWiki_Syntax_Plugin {
             // get TOC generation parameters
             if (preg_match('/^(?:(\d+)-(\d+)|^(\-?\d+))$/', $token, $matches)) {
                 if (count($matches) == 4) {
-                    if ($matches[3] > 0) {
-                        $topLv = $matches[3];
-                    } else {
+                    if (strpos($matches[3], '-') !== false) {
                         $maxLv = abs($matches[3]);
+                    } else {
+                        $topLv = $matches[3];
                     }
                 } else {
                         $topLv = $matches[1];
