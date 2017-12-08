@@ -37,18 +37,18 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
         // highest heading level which can appear in table of contents
         // lowest heading level to include in table of contents
         // minimum amount of headlines to show table of contents
-        if (!isset($conf['plugin']['toctweak']['_toptoclevel']) && is_numeric($conf['toptoclevel'])) {
-            $conf['plugin']['toctweak']['_toptoclevel'] = $conf['toptoclevel'];
-        } else {
-            $conf['plugin']['toctweak']['_toptoclevel'] = 1;
-        }
-error_log('_setup _toc='.$conf['plugin']['toctweak']['_toptoclevel']);
-        if (!isset($conf['plugin']['toctweak']['_maxtoclevel']) && is_numeric($conf['maxtoclevel'])) {
-            $conf['plugin']['toctweak']['_maxtoclevel'] = $conf['maxtoclevel'];
-        }
-        if (!isset($conf['plugin']['toctweak']['_tocminheads']) && is_numeric($conf['tocminheads'])) {
-            $conf['plugin']['toctweak']['_tocminheads'] = $conf['tocminheads'];
-        }
+
+/*
+        $volatile =& $conf['plugin']['toctweak'];
+        $volatile['toptoclevel'] = $conf['toptoclevel'];
+        $volatile['maxtoclevel'] = $conf['maxtoclevel'];
+        $volatile['tocminheads'] = $conf['tocminheads'];
+*/
+        // we take up all headdings in pages
+        $conf['toptoclevel'] = 1;
+        $conf['maxtoclevel'] = 5;
+        $conf['tocminheads'] = 2; // setting to 1 may cause trouble in preview.txt ?
+
     }
 
 
@@ -59,14 +59,9 @@ error_log('_setup _toc='.$conf['plugin']['toctweak']['_toptoclevel']);
     function _setVolatileConfig(Doku_Event $event, $param) {
         global $conf, $ID;
 
+        error_log('### DOKUWIKI_STARTED ###');
         // preserve site global configuration parameters
         $this->_setupVolatileConfig();
-
-        $keys = array('_toptoclevel', '_maxtoclevel', '_tocminheads');
-        foreach ($keys as $k) { 
-            error_log('TOCTWEAK '.$ID.' '.$k.'='.$conf['plugin']['toctweak'][$k]);
-        }
-
     }
 
     /**
@@ -80,71 +75,16 @@ error_log('_setup _toc='.$conf['plugin']['toctweak']['_toptoclevel']);
         $cache =& $event->data;
         if (!isset($cache->page)) return;
 
-        if (!is_array($conf['plugin']['toctweak'])) {
-            $this->_setupVolatileConfig();
+        // DEBUG check accessibility of $conf
+        if (!is_array($conf['plugin']['tocweak'])) {
+         // error_log('.... RENDER_CACHE_USE '.$cache->mode.' '.$cache->page.' : no accessible to $conf');
+            return;
         }
+        if ($cache->mode != 'xhtml') return;
 
-        //DEBUG 
-        $note = 'toctweak PARSER_CACHE_USE: '.$cache->page.' ';
-        if (isset($conf['plugin']['toctweak']['_toptoclevel'])) {
-            $note.= '_top='.$conf['plugin']['toctweak']['_toptoclevel'];
-        } else {
-            $note.= '_top=NOT AVAILABLE!';
-            error_log('  '.var_export($conf['plugin']['toctweak'],1));
-        }
-        error_log($note);
-
-
-/* ----------------------------------------------------------- */
-        // preserve site global configuration parameters as class properties
-        $keys = array('toptoclevel', 'maxtoclevel', 'tocminheads');
-        foreach ($keys as $k) { 
-            if ($this->$k == null) $this->$k = $conf[$k]; 
-        }
-/* ----------------------------------------------------------- */
-
-        // restore site global configuration parameters
-        //error_log('rendertoc top:'.$conf['plugin']['toctweak']['_toptoclevel'].' '.$conf['toptoclevel']);
-        //error_log('rendertoc max:'.$conf['plugin']['toctweak']['_maxtoclevel'].' '.$conf['maxtoclevel']);
-
-        $conf['toptoclevel'] = $conf['plugin']['toctweak']['_toptoclevel'];
-        $conf['maxtoclevel'] = $conf['plugin']['toctweak']['_maxtoclevel'];
-        $conf['tocminheads'] = 1;
-
-        //error_log('rendertoc top:'.$conf['plugin']['toctweak']['_toptoclevel'].' '.$conf['toptoclevel']);
-        //error_log('rendertoc max:'.$conf['plugin']['toctweak']['_maxtoclevel'].' '.$conf['maxtoclevel']);
-
-        //return;
-
-
-        // retrieve metadata
-        $topLv = p_get_metadata($cache->page, 'toc toptoclevel', METADATA_DONT_RENDER);
-        $maxLv = p_get_metadata($cache->page, 'toc maxtoclevel', METADATA_DONT_RENDER);
-        //return;
-
-        // modify $conf with metadata if available, otherwise restore to original value
-        $conf['toptoclevel'] = $topLv ?: $conf['plugin']['toctweak']['_toptoclevel'];
-        $conf['maxtoclevel'] = $maxLv ?: $conf['plugin']['toctweak']['_maxtoclevel'];
-
-        error_log('rendertoc '.$cache->mode.' top1:'.$conf['plugin']['toctweak']['_toptoclevel'].' '.$conf['toptoclevel']);
-        error_log('rendertoc '.$cache->mode.' max1:'.$conf['plugin']['toctweak']['_maxtoclevel'].' '.$conf['maxtoclevel']);
-
-        //$conf['toptoclevel'] = $topLv ?: $this->getConf('_toptoclevel');
-        //$conf['maxtoclevel'] = $maxLv ?: $this->getConf('_maxtoclevel');
-        //return;
-// -------------------------------- */ 
-        $conf['toptoclevel'] = $topLv ?: $this->toptoclevel;
-        $conf['maxtoclevel'] = $maxLv ?: $this->maxtoclevel;
-// -------------------------------- */
-        error_log('rendertoc top:'.$conf['plugin']['toctweak']['_toptoclevel'].' '.$conf['toptoclevel']);
-        error_log('rendertoc max:'.$conf['plugin']['toctweak']['_maxtoclevel'].' '.$conf['maxtoclevel']);
-
-        // show TOC whenever possible if toc parameters have stored in metadata storage
-        $conf['tocminheads'] = ($topLv || $maxLv) ? 1 : $conf['plugin']['toctweak']['_tocminheads'];
-// -------------------------------- */
-        $conf['tocminheads'] = ($topLv || $maxLv) ? 1 : $this->tocminheads;
-// -------------------------------- */
-        $conf['tocminheads'] = 1;
+        // initialize toc generation parameters
+        // we take up all headdings in pages
+        $this->_setupVolatileConfig();
     }
 
     /**
@@ -157,6 +97,7 @@ error_log('_setup _toc='.$conf['plugin']['toctweak']['_toptoclevel']);
         if (in_array($ACT, array('show', 'preview')) == false) return;
         if (($INFO['meta']['toc']['position'] < 0)||($this->getConf('tocPosition') > 0)) {
                 $INFO['prependTOC'] = false;
+                $INFO['prependTOC'] = true;  // DEBUG anyway show original TOC
         }
     }
 
@@ -173,11 +114,11 @@ error_log('_setup _toc='.$conf['plugin']['toctweak']['_toptoclevel']);
         // TOC control should be changeable in only normal page
         if (in_array($ACT, array('show', 'preview')) == false) return;
 
-    error_log('rendertoc post 1: '.
-        $this->getConf('_toptoclevel').' '.
-        $this->getConf('_maxtoclevel').' '
+    error_log('rendertoc '.$ID.' post 1: '.
+        $this->getConf('toptoclevel').' '.
+        $this->getConf('maxtoclevel').' '
     );
-
+    error_log('data[0]='.$event->data[0]);
 
         // exclude sidebar, etc.
         if ($INFO['id'] != $ID) return;
@@ -218,10 +159,8 @@ error_log('_setup _toc='.$conf['plugin']['toctweak']['_toptoclevel']);
 
             foreach ($tokens as $token) {
 
-                //if (!isset($token[2])) $token[2] = $INFO['meta']['toc']['toptoclevel'] ?: $this->toptoclevel;
-                //if (!isset($token[3])) $token[3] = $INFO['meta']['toc']['maxtoclevel'] ?: $this->maxtoclevel;
-                if (!isset($token[2])) $token[2] = $INFO['meta']['toc']['toptoclevel'] ?: $this->getConf('_toptoclevel');
-                if (!isset($token[3])) $token[3] = $INFO['meta']['toc']['maxtoclevel'] ?: $this->getConf('_maxtoclevel');
+                if (!isset($token[2])) $token[2] = $INFO['meta']['toc']['toptoclevel'] ?: $this->getConf('toptoclevel');
+                if (!isset($token[3])) $token[3] = $INFO['meta']['toc']['maxtoclevel'] ?: $this->getConf('maxtoclevel');
                 if (!isset($token[4])) $token[4] = $INFO['meta']['toc']['class'];
 
                 switch ($token[1]) {
