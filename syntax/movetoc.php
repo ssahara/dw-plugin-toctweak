@@ -101,16 +101,26 @@ class syntax_plugin_toctweak_movetoc extends DokuWiki_Syntax_Plugin {
             case 'xhtml':
                 // Add PLACEHOLDER to cached page (will be replaced by action component)
                 $lv['top'] = (isset($topLv))
+                    ? max($conf['plugin']['toctweak']['_toptoclevel'], $topLv)
+                    : $conf['plugin']['toctweak']['_toptoclevel'];
+                $lv['max'] = (isset($maxLv))
+                    ? min($conf['plugin']['toctweak']['_maxtoclevel'], $maxLv)
+                    : $conf['plugin']['toctweak']['_maxtoclevel'];
+
+/* ---------------------------------------------------
+                $lv['top'] = (isset($topLv))
                     ? max($conf['toptoclevel'], $topLv)
                     : $conf['toptoclevel'];
                 $lv['max'] = (isset($maxLv))
                     ? min($conf['maxtoclevel'], $maxLv)
                     : $conf['maxtoclevel'];
+--------------------------------------------------- */
 
                 $placeHolder = '<!-- '.strstr(substr($this->pattern[5],2),':',1)
                               .' '.$lv['top'].' '.$lv['max'].' '.$tocClass
                               .' -->';
                 $renderer->doc .= $placeHolder . DOKU_LF;
+                error_log('movetoc '.$placeHolder);
                 return true;
 
             case 'metadata':
