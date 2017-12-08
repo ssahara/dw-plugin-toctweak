@@ -97,7 +97,7 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
         if (in_array($ACT, array('show', 'preview')) == false) return;
         if (($INFO['meta']['toc']['position'] < 0)||($this->getConf('tocPosition') > 0)) {
                 $INFO['prependTOC'] = false;
-                $INFO['prependTOC'] = true;  // DEBUG anyway show original TOC
+             // $INFO['prependTOC'] = true;  // DEBUG anyway show original TOC
         }
     }
 
@@ -141,15 +141,17 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
         }
 
         // set PLACEHOLDER according the tocPostion config setting
+     // $placeHolder = '<!-- TOC -->';
+        $placeHolder = '<!-- TOC '.$this->getConf('toptoclevel').' '.$this->getConf('maxtoclevel').' -->';
         switch ($tocPosition) {
             case 0:
                 //$event->data[1] = '<!-- TOC -->'.$event->data[1];
                 break;
             case 1:
-                $event->data[1] = preg_replace('#</(h[1-6])>#', "</$1>\n".'<!-- TOC -->', $event->data[1], 1);
+                $event->data[1] = preg_replace('#</(h[1-6])>#', "</$1>\n".$placeHolder, $event->data[1], 1);
                 break;
             case 2:
-                $event->data[1] = preg_replace('#</h1>#', "</h1>\n".'<!-- TOC -->', $event->data[1], 1);
+                $event->data[1] = preg_replace('#</h1>#', "</h1>\n".$placeHolder, $event->data[1], 1);
                 break;
         }
 

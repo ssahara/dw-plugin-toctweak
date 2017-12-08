@@ -101,40 +101,9 @@ class syntax_plugin_toctweak_movetoc extends DokuWiki_Syntax_Plugin {
 
         switch ($format) {
             case 'xhtml':
-                if (!is_array($conf['plugin']['toctweak'])) {
-                    error_log('.... movetoc render: '.$ID.' no access to $conf');
-                } else {
-                    error_log('.... movetoc render: '.$ID.' '.var_export($conf['plugin']['toctweak'],1));
-                    //error_log('.... movetoc render this->getConf(toptoclevel)='.$this->getConf('toptoclevel'));
-                    //error_log('.... movetoc render this->getConf(maxtoclevel)='.$this->getConf('maxtoclevel'));
-                }
-
-
-                // Add PLACEHOLDER to cached page (will be replaced by action component)
-                $lv['top'] = (isset($topLv))
-                    ? max($this->getConf('toptoclevel'), $topLv)
-                    : $this->getConf('toptoclevel');
-                $lv['max'] = (isset($maxLv))
-                    ? min($this->getConf('maxtoclevel'), $maxLv)
-                    : $this->getConf('maxtoclevel');
-/*
-                $lv['top'] = (isset($topLv))
-                    ? max($conf['plugin']['toctweak']['toptoclevel'], $topLv)
-                    : $conf['plugin']['toctweak']['toptoclevel'];
-                $lv['max'] = (isset($maxLv))
-                    ? min($conf['plugin']['toctweak']['maxtoclevel'], $maxLv)
-                    : $conf['plgin']['toctweak']['maxtoclevel'];
-
-                $lv['top'] = (isset($topLv))
-                    ? max($conf['toptoclevel'], $topLv)
-                    : $conf['toptoclevel'];
-                $lv['max'] = (isset($maxLv))
-                    ? min($conf['maxtoclevel'], $maxLv)
-                    : $conf['maxtoclevel'];
-*/
-
+                // render PLACEHOLDER, which will be replaced by action component
                 $placeHolder = '<!-- '.strstr(substr($this->pattern[5],2),':',1)
-                              .' '.$lv['top'].' '.$lv['max'].' '.$tocClass
+                              .' '.$topLv.' '.$maxLv.' '.$tocClass
                               .' -->';
                 $renderer->doc .= $placeHolder . DOKU_LF;
                 error_log('..movetoc render: '.$placeHolder);
