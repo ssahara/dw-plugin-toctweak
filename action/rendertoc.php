@@ -44,8 +44,8 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
      * render TOC according to $tocPosition
      * -1: PLACEHOLDER set by syntax component
      *  0: default. TOC will not moved (tocPostion config option)
-     *  1: set PLACEHOLDER after the first heading (tocPosition config option)
-     *  2: set PLACEHOLDER after the first level 1 heading (tocPosition config optipn)
+     *  1: set PLACEHOLDER after the first level 1 heading (tocPosition config optipn)
+     *  6: set PLACEHOLDER after the first heading (tocPosition config option)
      */
     public function handlePostProcess(Doku_Event $event, $param) {
         global $INFO, $ID, $TOC, $ACT;
@@ -79,10 +79,10 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
                 //$event->data[1] = '<!-- TOC -->'.$event->data[1];
                 break;
             case 1:
-                $event->data[1] = preg_replace('#</(h[1-6])>#', "</$1>\n".'<!-- TOC -->', $event->data[1], 1);
-                break;
-            case 2:
                 $event->data[1] = preg_replace('#</h1>#', "</h1>\n".'<!-- TOC -->', $event->data[1], 1);
+                break;
+            case 6:
+                $event->data[1] = preg_replace('#</(h[1-6])>#', "</$1>\n".'<!-- TOC -->', $event->data[1], 1);
                 break;
         }
 

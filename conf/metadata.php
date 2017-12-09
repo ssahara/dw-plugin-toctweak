@@ -3,5 +3,5 @@
  * DokuWiki plugin TOC Tweak;
  */
 
-$meta['tocPosition'] = array('multichoice','_choices' => array(0,1,2,3));
+$meta['tocPosition'] = array('multichoice','_choices' => array(0,1,6,9));
 

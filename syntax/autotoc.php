@@ -52,8 +52,8 @@ class syntax_plugin_toctweak_autotoc extends DokuWiki_Syntax_Plugin {
         // get where and how the TOC should be located in the page
         // -1: PLACEHOLDER set by syntax component
         //  0: default. TOC will not moved (tocPostion config option)
-        //  1: set PLACEHOLDER after the first heading (tocPosition config option)
-        //  2: set PLACEHOLDER after the first level 1 heading (tocPosition config optipn)
+        //  1: set PLACEHOLDER after the first level 1 heading (tocPosition config optipn)
+        //  6: set PLACEHOLDER after the first heading (tocPosition config option)
         $tocPosition = (substr($data, 0, 2) == '{{') ? -1 : 0;
 
         if ($format == 'xhtml') {
