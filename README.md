@@ -16,11 +16,11 @@ Syntax
 
     ~~CLOSETOC~~ 
 
-    ~~TOC: [topTocLevel] [- maxTocLevel] ~~
+    ~~TOC: topTocLevel-maxTocLevel ~~
 
-    {{TOC}} or {{TOC:class topTocLevel - maxTocLevel}}
+    {{TOC}} or {{TOC:class topTocLevel-maxTocLevel}}
 
-    {{INLINETOC}} or {{INLINETOC:class topTocLevel - maxTocLevel}}
+    {{INLINETOC}} or {{INLINETOC:class topTocLevel-maxTocLevel}}
 
 ----
 Licensed under the GNU Public License (GPL) version 2

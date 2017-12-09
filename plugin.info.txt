@@ -2,6 +2,6 @@ base  toctweak
 name  TOC Tweaking assortment
 author Satoshi Sahara
 email  sahara.satoshi@gmail.com
-date   2015-09-01
+date   2017-12-09
 desc   Tweak table of contents (TOC) for specific pages. Allow to tune TOC property: a) initial toggle status, b) top and max level of headings, c) position with css class.
 url    https://www.dokuwiki.org/plugin:toctweak
