@@ -10,13 +10,12 @@
  * @author     Satoshi Sahara <sahara.satoshi@gmail.com>
  */
 
-require_once(dirname(__FILE__).'/autotoc.php');
+require_once(dirname(__FILE__).'/locator.php');
 
-class syntax_plugin_toctweak_inlinetoc extends syntax_plugin_toctweak_autotoc {
+class syntax_plugin_toctweak_inlinetoc extends syntax_plugin_toctweak_locator {
 
     protected $pattern = array(
         5 => '{{INLINETOC:?.*?}}',  // DOKU_LEXER_SPECIAL
     );
-    protected $place_holder = '<!-- INLINETOC -->';
 
 }
