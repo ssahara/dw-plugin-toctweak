@@ -13,89 +13,47 @@
 if(!defined('DOKU_INC')) die();
 
 class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
-/* ----------------------------------- */
-    protected $toptoclevel; // highest heading level which can appear in table of contents
-    protected $maxtoclevel; // lowest heading level to include in table of contents
-    protected $tocminheads; // minimum amount of headlines to show table of contents
-
-/* ----------------------------------- */
 
     /**
      * Register event handlers
      */
     function register(Doku_Event_Handler $controller) {
-        $controller->register_hook('DOKUWIKI_STARTED', 'AFTER', $this, '_setVolatileConfig');
-        $controller->register_hook('PARSER_CACHE_USE', 'BEFORE', $this, '_setTocControl', array());
-        $controller->register_hook('TPL_ACT_RENDER', 'BEFORE', $this, 'handle_act_render', array());
+        $controller->register_hook('PARSER_CACHE_USE', 'BEFORE', $this, 'handleParserCache', array());
+        $controller->register_hook('TPL_ACT_RENDER', 'BEFORE', $this, 'handleActRender', array());
         $controller->register_hook('RENDERER_CONTENT_POSTPROCESS', 'BEFORE', $this, 'handlePostProcess', array());
     }
 
-    protected function _setupVolatileConfig() {
+    protected function _setupTocConfig() {
         global $conf;
 
-        // preserve site global configuration parameters
-        // highest heading level which can appear in table of contents
-        // lowest heading level to include in table of contents
-        // minimum amount of headlines to show table of contents
+        // Overwrite toc config parameters to catch up all headings in pages
+        //  toptoclevel : highest heading level which can appear in table of contents
+        //  maxtoclevel : lowest heading level to include in table of contents
+        //  tocminheads : minimum amount of headlines to show table of contents
+        // Note: setting tocminheads to 1 may cause trouble in preview.txt ?
 
-/*
-        $volatile =& $conf['plugin']['toctweak'];
-        $volatile['toptoclevel'] = $conf['toptoclevel'];
-        $volatile['maxtoclevel'] = $conf['maxtoclevel'];
-        $volatile['tocminheads'] = $conf['tocminheads'];
-*/
-        // we take up all headdings in pages
         $conf['toptoclevel'] = 1;
         $conf['maxtoclevel'] = 5;
-        $conf['tocminheads'] = 2; // setting to 1 may cause trouble in preview.txt ?
-
-    }
-
-
-
-    /**
-     * DOKUWIKI_STARTED
-     */
-    function _setVolatileConfig(Doku_Event $event, $param) {
-        global $conf, $ID;
-
-        error_log('### DOKUWIKI_STARTED ###');
-        // preserve site global configuration parameters
-        $this->_setupVolatileConfig();
+        $conf['tocminheads'] = $this->getConf('tocminheads'); 
     }
 
     /**
      * PARSER_CACHE_USE
-     * Overwrites TOC-related config parameters
-     * clear volatile config settings that have set in syntax component
+     * Overwrite TOC config parameters to catch up all headings in pages
      */
-    function _setTocControl(Doku_Event $event, $param) {  // _setTocControl
-        global $conf;
-
-        $cache =& $event->data;
-        if (!isset($cache->page)) return;
-
-        // DEBUG check accessibility of $conf
-        if (!is_array($conf['plugin']['tocweak'])) {
-         // error_log('.... RENDER_CACHE_USE '.$cache->mode.' '.$cache->page.' : no accessible to $conf');
-            return;
-        }
-        if ($cache->mode != 'xhtml') return;
-
-        // initialize toc generation parameters
-        // we take up all headdings in pages
-        $this->_setupVolatileConfig();
+    function handleParserCache(Doku_Event $event, $param) {  // _setTocControl
+        $this->_setupTocConfig();
     }
 
     /**
      * TPL_ACT_RENDER
-     * Make sure the other TOC is not printed
+     * Make sure the built-in TOC is not printed
      */
-    function handle_act_render(Doku_Event $event, $param) {
+    function handleActRender(Doku_Event $event, $param) {
         global $INFO, $ACT;
         // TOC control should be changeable in only normal page
         if (in_array($ACT, array('show', 'preview')) == false) return;
-        if (($INFO['meta']['toc']['position'] < 0)||($this->getConf('tocPosition') > 0)) {
+        if ((!$INFO['meta']['toc']['position'])||($this->getConf('tocPosition') > 1)) {
                 $INFO['prependTOC'] = false;
              // $INFO['prependTOC'] = true;  // DEBUG anyway show original TOC
         }
@@ -106,64 +64,52 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
      * render TOC according to $tocPosition
      * -1: PLACEHOLDER set by syntax component
      *  0: default. TOC will not moved (tocPostion config option)
-     *  1: set PLACEHOLDER after the first heading (tocPosition config option)
-     *  2: set PLACEHOLDER after the first level 1 heading (tocPosition config optipn)
+     *  1: set PLACEHOLDER after the first level 1 heading (tocPosition config optipn)
+     *  6: set PLACEHOLDER after the first heading (tocPosition config option)
      */
     function handlePostProcess(Doku_Event $event, $param) {
         global $conf, $INFO, $ID, $TOC, $ACT;
-        // TOC control should be changeable in only normal page
+
         if (in_array($ACT, array('show', 'preview')) == false) return;
 
-    error_log('rendertoc '.$ID.' post 1: '.
-        $this->getConf('toptoclevel').' '.
-        $this->getConf('maxtoclevel').' '
-    );
-    error_log('data[0]='.$event->data[0]);
+        $meta =& $INFO['meta']['toc'];
 
         // exclude sidebar, etc.
         if ($INFO['id'] != $ID) return;
 
-        // exclude <dokuwiki>/inc/lang/<ISO>/preview.txt file.
-        if ($ACT=='preview') {
-            if (preg_match('#(<h[1-6]).*?>(.*?)</\1>#', $event->data[1], $matches)) {
-                if ($matches[2] != hsc($INFO['meta']['title'])) return;
-            }
-        } 
-
         // TOC Position
-        $tocPosition = $this->getConf('tocPosition');
+        $tocPosition = $meta['position'] ?? $this->getConf('tocPosition');
         if ($ACT=='preview') {
             if (preg_match('#<!-- (?:TOC|INLINETOC) .*?-->#', $event->data[1])) {
                 $tocPosition = -1;
             }
-        } elseif (isset($INFO['meta']['toc']['position'])) {
-                $tocPosition = $INFO['meta']['toc']['position'];
         }
 
-        // set PLACEHOLDER according the tocPostion config setting
-     // $placeHolder = '<!-- TOC -->';
-        $placeHolder = '<!-- TOC '.$this->getConf('toptoclevel').' '.$this->getConf('maxtoclevel').' -->';
-        switch ($tocPosition) {
-            case 0:
-                //$event->data[1] = '<!-- TOC -->'.$event->data[1];
-                break;
-            case 1:
-                $event->data[1] = preg_replace('#</(h[1-6])>#', "</$1>\n".$placeHolder, $event->data[1], 1);
-                break;
-            case 2:
-                $event->data[1] = preg_replace('#</h1>#', "</h1>\n".$placeHolder, $event->data[1], 1);
-                break;
+        // set PLACEHOLDER according to tocPostion config setting
+        if ($tocPosition >= 0) {
+            $topLv = $meta['toptoclevel'] ?? $this->getConf('toptoclevel');
+            $maxLv = $meta['maxtoclevel'] ?? $this->getConf('maxtoclevel');
+            $tocClass = $meta['class'] ?? '';
+            $placeHolder = '<!-- TOC '.$topLv.'-'.$maxLv.' '.$tocClass.' -->';
+            switch ($tocPosition) {
+                case 0:
+                    $event->data[1] = $placeHolder.DOKU_LF.$event->data[1];
+                    break;
+                case 1:
+                    $event->data[1] = preg_replace('#</h1>#', "</h1>\n".$placeHolder, $event->data[1], 1);
+                    break;
+                case 6:
+                    $event->data[1] = preg_replace('#</(h[1-6])>#', "</$1>\n".$placeHolder, $event->data[1], 1);
+                    break;
+            }
         }
 
         // replace PLACEHOLDERs
-        $placeHolder = '#<!-- (TOC|INLINETOC)(?: (\d))?(?: (\d))?(?: (.*?))? -->#'; // regex
+        $placeHolder = '#<!-- (TOC|INLINETOC) (\d+)-(\d+)(?: (.*?))? -->#'; // regex
+
         if (preg_match_all($placeHolder, $event->data[1], $tokens, PREG_SET_ORDER)) {
 
             foreach ($tokens as $token) {
-
-                if (!isset($token[2])) $token[2] = $INFO['meta']['toc']['toptoclevel'] ?: $this->getConf('toptoclevel');
-                if (!isset($token[3])) $token[3] = $INFO['meta']['toc']['maxtoclevel'] ?: $this->getConf('maxtoclevel');
-                if (!isset($token[4])) $token[4] = $INFO['meta']['toc']['class'];
 
                 switch ($token[1]) {
                     case 'TOC':

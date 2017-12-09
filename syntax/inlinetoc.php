@@ -10,9 +10,9 @@
  * @author     Satoshi Sahara <sahara.satoshi@gmail.com>
  */
 
-require_once(dirname(__FILE__).'/movetoc.php');
+require_once(dirname(__FILE__).'/locator.php');
 
-class syntax_plugin_toctweak_inlinetoc extends syntax_plugin_toctweak_movetoc {
+class syntax_plugin_toctweak_inlinetoc extends syntax_plugin_toctweak_locator {
 
     protected $pattern = array(
         5 => '{{INLINETOC:?.*?}}',  // DOKU_LEXER_SPECIAL

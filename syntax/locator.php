@@ -1,7 +1,7 @@
 <?php
 /**
- * DokuWiki plugin TOC Tweak; Syntax toctweak movetoc
- * move toc position in the page with optional css class
+ * DokuWiki plugin TOC Tweak; Syntax toctweak locator
+ * locate toc box with optional css class in the page
  * set top and max level of headings of the page with optional css class
  *
  * @license    GPL 2 (http://www.gnu.org/licenses/gpl.html)
@@ -10,7 +10,7 @@
 
 if(!defined('DOKU_INC')) die();
 
-class syntax_plugin_toctweak_movetoc extends DokuWiki_Syntax_Plugin {
+class syntax_plugin_toctweak_locator extends DokuWiki_Syntax_Plugin {
 
     protected $mode;
     protected $pattern = array(
@@ -30,7 +30,7 @@ class syntax_plugin_toctweak_movetoc extends DokuWiki_Syntax_Plugin {
      * Connect pattern to lexer
      */
     function connectTo($mode) {
-     // $this->Lexer->addSpecialPattern($this->pattern[5], $mode, $this->mode);
+        $this->Lexer->addSpecialPattern($this->pattern[5], $mode, $this->mode);
     }
 
     /**
@@ -93,20 +93,19 @@ class syntax_plugin_toctweak_movetoc extends DokuWiki_Syntax_Plugin {
         if ($id != $ID) return false;
 
         // get where and how the TOC should be located in the page
-        //  0: PLACEHOLDER set by syntax component
-        //  1: default. TOC will not moved (tocPostion config option)
-        //  2: set PLACEHOLDER after the first heading (tocPosition config option)
-        //  3: set PLACEHOLDER after the first level 1 heading (tocPosition config optipn)
-        $tocPosition = 0;
+        // -1: PLACEHOLDER set by syntax component
+        //  0: default. TOC will not moved (tocPostion config option)
+        //  1: set PLACEHOLDER after the first level 1 heading (tocPosition config optipn)
+        //  6: set PLACEHOLDER after the first heading (tocPosition config option)
+        $tocPosition = -1;
 
         switch ($format) {
             case 'xhtml':
                 // render PLACEHOLDER, which will be replaced by action component
                 $placeHolder = '<!-- '.strstr(substr($this->pattern[5],2),':',1)
-                              .' '.$topLv.'-'.$maxLv.' '.$tocClass
-                              .' -->';
+                              .' '.$topLv.'-'.$maxLv.' '.$tocClass.' -->';
                 $renderer->doc .= $placeHolder . DOKU_LF;
-                error_log('..movetoc render: '.$placeHolder);
+             // error_log('..movetoc render: '.$placeHolder);
                 return true;
 
             case 'metadata':
