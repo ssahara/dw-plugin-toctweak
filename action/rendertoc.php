@@ -53,7 +53,7 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
         global $INFO, $ACT;
         // TOC control should be changeable in only normal page
         if (in_array($ACT, array('show', 'preview')) == false) return;
-        if ((!$INFO['meta']['toc']['position'])||($this->getConf('tocPosition') > 1)) {
+        if (($INFO['meta']['toc']['position'] < 0)||($this->getConf('tocPosition') > 0)) {
                 $INFO['prependTOC'] = false;
              // $INFO['prependTOC'] = true;  // DEBUG anyway show original TOC
         }
