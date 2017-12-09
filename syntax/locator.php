@@ -39,42 +39,11 @@ class syntax_plugin_toctweak_locator extends DokuWiki_Syntax_Plugin {
     function handle($match, $state, $pos, Doku_Handler $handler) {
         global $ID;
 
-        // strip and split markup
-        $params = explode(' ', substr($match, strpos($this->pattern[5],':')+1, -2));
+        // strip markup
+        $param = substr($match, strpos($this->pattern[5],':')+1, -2);
 
-        foreach ($params as $token) {
-            if (empty($token)) continue;
-
-            // get TOC generation parameters
-            if (preg_match('/^(?:(\d+)-(\d+)|^(\-?\d+))$/', $token, $matches)) {
-                if (count($matches) == 4) {
-                    if (strpos($matches[3], '-') !== false) {
-                        $maxLv = abs($matches[3]);
-                    } else {
-                        $topLv = $matches[3];
-                    }
-                } else {
-                        $topLv = $matches[1];
-                        $maxLv = $matches[2];
-                }
-                if (isset($topLv)) {
-                    $topLv = ($topLv < 1) ? 1 : $topLv;
-                    $topLv = ($topLv > 5) ? 5 : $topLv;
-                }
-                if (isset($maxLv)) {
-                    $maxLv = ($maxLv > 5) ? 5 : $maxLv;
-                }
-                continue;
-            }
-
-            // get class name for TOC box, ensure excluded any malcious character
-            if (!preg_match('/[^ A-Za-z0-9_-]/', $token)) {
-                $classes[] = $token;
-            }
-        }
-        if (!empty($classes)) {
-            $tocClass = implode(' ', $classes);
-        }
+        $helper = $this->loadHelper($this->getPluginName());
+        list($topLv, $maxLv, $tocClass) = $helper->parse($param);
 
         $data = array($ID, $topLv, $maxLv, $tocClass);
      // error_log('..movetoc handler :'.var_export($data,1));
