@@ -1,6 +1,13 @@
-/*
+/**
  * DokuWiki plugin TOC Tweak;
  */
+
+.width18 { width:18em; }
+
+/*------------------------------------*
+   INLINETOC
+ *------------------------------------*/
+div.toc_inline,
 #dw__inlinetoc {
     margin-top: 10px;
     margin-bottom: 5px;
@@ -8,35 +15,31 @@
     border-style: solid;
     border-width: thin;
     padding-top: 10px;
-    border-radius : 10px;
-    _background-color: __background_alt__;
-}
-
-#dw__inlinetoc h3 {
+    border-radius: 10px;
+    background-color: __background_alt__;
+  h3 {
     padding-left: 2em;
     font-size: .875em;
     font-weight: bold;
-}
-[dir=rtl] #dw__inlinetoc h3 {
-    padding-right: 2em;
-    font-size: .875em;
-    font-weight: bold;
-}
-
-#dw__inlinetoc ul {
+  }
+  ul {
     padding-left: 2.2em;
     list-style-type: square;
     line-height: 1.5em;
     font-size: 90%;
+  }
 }
-[dir=rtl] #dw__inlinetoc ul {
+[dir=rtl] div.toc_inline,
+[dir=rtl] #dw__inlinetoc {
+  h3 {
+    padding-right: 2em;
+    font-size: .875em;
+    font-weight: bold;
+  }
+  ul {
     padding-right: 2.2em;
     list-style-type: square;
     line-height: 1.5em;
     font-size: 90%;
+  }
 }
-
-#dw__inlinetoc.width18 {
-    width: 18em;
-}
-
