@@ -46,7 +46,7 @@ class syntax_plugin_toctweak_metatoc extends DokuWiki_Syntax_Plugin {
         // Ex: {{METATOC>id#section 2-4 width18 toc_hierarchical}}
 
         $start = strpos($this->pattern[5],':');
-        if ($match[$start] = '>') {
+        if ($match[$start] == '>') {
             list($id, $param) = explode(' ', substr($match, $start+1, -2), 2);
             list($page, $section) = explode('#', $id, 2);
             $page = $page ?: $ID;
@@ -57,6 +57,12 @@ class syntax_plugin_toctweak_metatoc extends DokuWiki_Syntax_Plugin {
         }
 
         list($topLv, $maxLv, $tocClass) = $helper->parse($param);
+
+        // check basic tocStyle
+        if (!preg_match('/\btoc_.*\b/', $tocClass)) {
+            $tocClass = implode(' ', array($this->tocStyle, $tocClass));
+        }
+
         $data = array($id, $topLv, $maxLv, $tocClass);
         return $data;
     }
@@ -95,8 +101,8 @@ class syntax_plugin_toctweak_metatoc extends DokuWiki_Syntax_Plugin {
                     );
                 }
 
-                // toc visual design
-                $attr['class'] = $tocClass ?: $this->tocStyle;
+                // toc wrapper attributes
+                $attr['class'] = $tocClass;
 
                 $html = '<!-- METATOC START -->'.DOKU_LF;
                 $html.= '<div '.buildAttributes($attr).'>';
