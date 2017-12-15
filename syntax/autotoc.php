@@ -38,10 +38,12 @@ class syntax_plugin_toctweak_autotoc extends DokuWiki_Syntax_Plugin {
     function handle($match, $state, $pos, Doku_Handler $handler) {
         global $ID;
 
-        // strip markup
-        $param = substr($match, 6, -2);
+        // load helper object
+        $helper = $helper ?: $this->loadHelper($this->getPluginName());
 
-        $helper = $this->loadHelper($this->getPluginName());
+        // strip markup
+        $start = strpos($this->pattern[5],':');
+        $param = substr($match, $start+1, -2);
         list($topLv, $maxLv, $tocClass) = $helper->parse($param);
 
         return $data = array($ID, $topLv, $maxLv, $tocClass);

@@ -43,7 +43,8 @@ class syntax_plugin_toctweak_locator extends DokuWiki_Syntax_Plugin {
         $helper = $helper ?: $this->loadHelper($this->getPluginName());
 
         // strip markup
-        $param = substr($match, strpos($this->pattern[5],':')+1, -2);
+        $start = strpos($this->pattern[5],':');
+        $param = substr($match, $start+1, -2);
 
         list($topLv, $maxLv, $tocClass) = $helper->parse($param);
 
@@ -72,10 +73,10 @@ class syntax_plugin_toctweak_locator extends DokuWiki_Syntax_Plugin {
         switch ($format) {
             case 'xhtml':
                 // render PLACEHOLDER, which will be replaced by action component
-                $placeHolder = '<!-- '.strstr(substr($this->pattern[5],2),':',1)
+                $start = strpos($this->pattern[5],':');
+                $placeHolder = '<!-- '.substr($this->pattern[5], 2, $start-2)
                               .' '.$topLv.'-'.$maxLv.' '.$tocClass.' -->';
                 $renderer->doc .= $placeHolder . DOKU_LF;
-             // error_log('..movetoc render: '.$placeHolder);
                 return true;
 
             case 'metadata':
