@@ -3,6 +3,7 @@
  * DokuWiki plugin TOC Tweak;
  */
 
+$meta['tocAllHeads'] = array('onoff');
 $meta['tocPosition'] = array('multichoice','_choices' => array(0,1,6,9));
 
 // Takeover TOC settings from main process

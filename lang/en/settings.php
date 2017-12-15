@@ -4,6 +4,7 @@
  * English language for settings
  */
 
+$lang['tocAllHeads'] = 'Store all headlines to page metadata';
 $lang['tocPosition'] = 'Position of TOC box';
   $lang['tocPosition_o_0'] = 'default (top)';
   $lang['tocPosition_o_1'] = 'after First Level 1 heading';

@@ -3,6 +3,7 @@
  * DokuWiki plugin TOC Tweak;
  */
 
+$conf['tocAllHeads'] = 1;
 $conf['tocPosition'] = 0;
 
 // Takeover TOC settings from main process

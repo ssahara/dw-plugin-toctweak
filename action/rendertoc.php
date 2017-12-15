@@ -41,8 +41,11 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
      * PARSER_CACHE_USE
      * Overwrite TOC config parameters to catch up all headings in pages
      */
-    function handleParserCache(Doku_Event $event, $param) {  // _setTocControl
-        $this->_setupTocConfig();
+    function handleParserCache(Doku_Event $event, $param) {
+        // force set toc config parameters
+        if ($this->getConf('tocAllHeads')) {
+            $this->_setupTocConfig();
+        }
     }
 
     /**
