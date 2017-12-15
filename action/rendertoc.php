@@ -46,6 +46,23 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
         if ($this->getConf('tocAllHeads')) {
             $this->_setupTocConfig();
         }
+
+        // manipulate cache validity
+        $cache =& $event->data;
+        if (!isset($cache->page)) return;
+        switch ($cache->mode) {
+            case 'i':        // instruction cache
+            case 'metadata': // metadata cache
+                break;
+            case 'xhtml':    // xhtml cache
+                // request check with additional dependent files
+                $depends = p_get_metadata($cache->page, 'relation toctweak');
+                if (!$depends) break;
+                $cache->depends['files'] = (!empty($cache->depends['files']))
+                        ? array_merge($cache->depends['files'], $depends)
+                        : $depends;
+        } // end of switch
+        return;
     }
 
     /**

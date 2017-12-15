@@ -39,14 +39,15 @@ class syntax_plugin_toctweak_locator extends DokuWiki_Syntax_Plugin {
     function handle($match, $state, $pos, Doku_Handler $handler) {
         global $ID;
 
+        // load helper object
+        $helper = $helper ?: $this->loadHelper($this->getPluginName());
+
         // strip markup
         $param = substr($match, strpos($this->pattern[5],':')+1, -2);
 
-        $helper = $this->loadHelper($this->getPluginName());
         list($topLv, $maxLv, $tocClass) = $helper->parse($param);
 
         $data = array($ID, $topLv, $maxLv, $tocClass);
-     // error_log('..movetoc handler :'.var_export($data,1));
         return $data;
     }
 

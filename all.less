@@ -5,6 +5,40 @@
 .width18 { width:18em; }
 
 /*------------------------------------*
+   METATOC hierarchical list style
+ *------------------------------------*/
+div.toc_hierarchical {
+    border-color: __border__;
+    border-style: solid;
+    border-width: thin;
+    border-radius: 4px;
+    padding-right: 1em;
+    background-color: __background_alt__;
+  h3 {
+    margin: 0;
+    padding: .2em 2em;
+    font-size: 85%;
+  }
+  ul {
+    // border: solid 1px pink;
+    counter-reset: hl_count;
+    list-style-style: none;
+    font-size: 90%;
+    li {
+      counter-increment: hl_count;
+      position: relative;
+      display: table;
+    }
+    li::before {
+      content: counters(hl_count, "-");
+      display: table-cell;
+      padding-right: .6em;
+      font-size: 80%;
+    }
+  }
+}
+
+/*------------------------------------*
    INLINETOC
  *------------------------------------*/
 div.toc_inline,
@@ -16,7 +50,7 @@ div.toc_inline,
     border-width: thin;
     padding-top: 10px;
     border-radius: 10px;
-    background-color: __background_alt__;
+    // background-color: __background_alt__;
   h3 {
     padding-left: 2em;
     font-size: .875em;
