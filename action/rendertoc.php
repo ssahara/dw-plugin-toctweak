@@ -98,22 +98,18 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
         if ($INFO['id'] != $ID) return;
 
         // TOC Position
-        if (isset($meta['position'])) {
-            $tocPosition = $meta['position'];
-        } else {
-            $tocPosition = $this->getConf('tocPosition');
-        }
+        $tocPosition = @$meta['position'] ?: $this->getConf('tocPosition');
         if ($ACT=='preview') {
-            if (preg_match('#<!-- (?:TOC|INLINETOC) .*?-->#', $event->data[1])) {
+            if (preg_match('#<!-- TOC .*?-->#', $event->data[1])) {
                 $tocPosition = -1;
             }
         }
 
         // set PLACEHOLDER according to tocPostion config setting
         if ($tocPosition >= 0) {
-            $topLv = (isset($meta['toptoclevel'])) ? $meta['toptoclevel'] : $this->getConf('toptoclevel');
-            $maxLv = (isset($meta['maxtoclevel'])) ? $meta['maxtoclevel'] : $this->getConf('maxtoclevel');
-            $tocClass = (isset($meta['class'])) ? $meta['class'] : '';
+            $topLv = @$meta['toptoclevel'] ?: $this->getConf('toptoclevel');
+            $maxLv = @$meta['maxtoclevel'] ?: $this->getConf('maxtoclevel');
+            $tocClass = @$meta['class'] ?: '';
             $placeHolder = '<!-- TOC '.$topLv.'-'.$maxLv.' '.$tocClass.' -->';
             switch ($tocPosition) {
                 case 0:
@@ -129,29 +125,16 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
         }
 
         // replace PLACEHOLDERs
-        $placeHolder = '#<!-- (TOC|INLINETOC) (\d+)-(\d+)(?: (.*?))? -->#'; // regex
+        $placeHolder = '#<!-- TOC (\d+)-(\d+)(?: (.*?))? -->#'; // regex
 
         if (preg_match_all($placeHolder, $event->data[1], $tokens, PREG_SET_ORDER)) {
 
             foreach ($tokens as $token) {
-
-                switch ($token[1]) {
-                    case 'TOC':
-                        $html = $this->html_toc($token[2], $token[3]);
-                        if (!empty($token[4])) {
+                $html = $this->html_toc($token[1], $token[2]);
+                if (!empty($token[3])) {
                             $search =  '<div id="dw__toc"';
                             $replace = $search.' class="'.trim($token[4]).'"';
                             $html = str_replace($search, $replace, $html);
-                        }
-                        break;
-                    case 'INLINETOC':
-                        $html = $this->html_inlinetoc($token[2], $token[3]);
-                        if (!empty($token[4])) {
-                            $search =  '<div id="dw__inlinetoc"';
-                            $replace = $search.' class="'.trim($token[4]).'"';
-                            $html = str_replace($search, $replace, $html);
-                        }
-                        break;
                 }
                 $event->data[1] = str_replace($token[0], $html, $event->data[1]);
             }
@@ -175,52 +158,18 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
 
         $items = array();
         foreach ($toc as $item) {
-            // get header level from original toc level
-            $headerLv = $item['level'] + $conf['toptoclevel'] -1;
+            // get headline level in real page
+            $Lv = $item['level'] + $conf['toptoclevel'] -1;
             // get new toc level from header level
-            $tocLv = $headerLv - $topLv +1;
+            $tocLv = $Lv - $topLv +1;
 
-            if (($headerLv < $topLv) || ($headerLv > $maxLv)) {
+            if (($Lv < $topLv) || ($Lv > $maxLv)) {
                 continue;
             }
             $item['level'] = $tocLv;
             $items[] = $item;
         }
         return $items;
-    }
-
-    /**
-     * Return html of customized INLINETOC
-     */
-    private function html_inlinetoc($topLv, $maxLv) {
-        global $TOC;
-        if (!count($TOC)) return '';
-
-        $items = $this->trim_toc($TOC, $topLv, $maxLv);
-        if (!empty($items)) {
-            $html = '<!-- INLINETOC START -->'.DOKU_LF;
-            $html.= '<div id="dw__inlinetoc">'.DOKU_LF;
-            $html.= '<h3>'.$lang['toc'].'</h3>';
-            $html.= html_buildlist($items, 'inlinetoc', array($this, 'html_list_inlinetoc'));
-            $html.= '</div>'.DOKU_LF;
-            $html.= '<!-- INLINETOC END -->'.DOKU_LF;
-        }
-        return $html;
-    }
-
-    /**
-     * Callback for html_buildlist called from $this->html_inlinetoc()
-     * Builds list items with inlinetoc printable class
-     */
-    function html_list_inlinetoc($item) {
-        if (isset($item['hid'])) {
-            $link = '#'.$item['hid'];
-        } else {
-            $link = $item['link'];
-        }
-        $html = '<span class="li"><a href="'.$link.'" class="inlinetoc">';
-        $html.= hsc($item['title']).'</a></span>';
-        return $html;
     }
 
 }
