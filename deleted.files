@@ -9,3 +9,6 @@ syntax/movetoc.php
 
 # Since 2017-12-14
 all.css
+
+# Since 2017-12-18
+syntax/locator.php

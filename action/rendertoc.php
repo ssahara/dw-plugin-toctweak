@@ -19,12 +19,17 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
      */
     function register(Doku_Event_Handler $controller) {
         $controller->register_hook('PARSER_CACHE_USE', 'BEFORE', $this, 'handleParserCache');
+
         $controller->register_hook('TPL_ACT_RENDER', 'BEFORE', $this, 'handleActRender');
+        $controller->register_hook('TPL_TOC_RENDER', 'BEFORE', $this, 'handleTocRender');
         $controller->register_hook('RENDERER_CONTENT_POSTPROCESS', 'BEFORE', $this, 'handlePostProcess');
+        $controller->register_hook('TPL_CONTENT_DISPLAY', 'BEFORE', $this, 'handleContentDisplay');
     }
 
-    protected function _setupTocConfig() {
+
+    protected function _setupTocConfig($active=true) {
         global $conf;
+        if (!$this->getConf('tocAllHeads')) return;
 
         // Overwrite toc config parameters to catch up all headings in pages
         //  toptoclevel : highest heading level which can appear in table of contents
@@ -33,7 +38,7 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
         // Note: setting tocminheads to 1 may cause trouble in preview.txt ?
 
         $conf['toptoclevel'] = 1;
-        $conf['maxtoclevel'] = 5;
+        $conf['maxtoclevel'] = ($active) ? 5 : 0;
         $conf['tocminheads'] = $this->getConf('tocminheads'); 
     }
 
@@ -42,14 +47,22 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
      * Overwrite TOC config parameters to catch up all headings in pages
      */
     function handleParserCache(Doku_Event $event, $param) {
-        // force set toc config parameters
-        if ($this->getConf('tocAllHeads')) {
-            $this->_setupTocConfig();
+        $cache =& $event->data;
+
+        // force set toc config parameters for pages (except locale XHTML files)
+        // exception when $cache->page is blank, we assume it is some locale wiki
+        // text and $conf['maxtoclevel'] = 0 to prepend adding placeholder in
+        // handlePostProcess()
+
+        if ($cache->page) {
+            $active = true;
+            $this->_setupTocConfig($active);
+        } else {
+            ($cache->mode == 'i') && $this->_setupTocConfig(false);
+            return;
         }
 
-        // manipulate cache validity
-        $cache =& $event->data;
-        if (!isset($cache->page)) return;
+        // manipulate cache validity (to get correct toc of other page)
         switch ($cache->mode) {
             case 'i':        // instruction cache
             case 'metadata': // metadata cache
@@ -75,20 +88,29 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
         if (in_array($ACT, array('show', 'preview')) == false) return;
         if (($INFO['meta']['toc']['position'] < 0)||($this->getConf('tocPosition') > 0)) {
                 $INFO['prependTOC'] = false;
-             // $INFO['prependTOC'] = true;  // DEBUG anyway show original TOC
+                $INFO['prependTOC'] = true;  // DEBUG anyway show original TOC
         }
     }
 
     /**
      * RENDERER_CONTENT_POSTPROCESS
-     * render TOC according to $tocPosition
+     * set placeholder for TOC html "<!-- TOC -->" according to $tocPosition
      * -1: PLACEHOLDER set by syntax component
      *  0: default. TOC will not moved (tocPostion config option)
      *  1: set PLACEHOLDER after the first level 1 heading (tocPosition config optipn)
      *  6: set PLACEHOLDER after the first heading (tocPosition config option)
+     *
+     * Note: $event->data[1] dose not contain html of table of contents.
      */
     function handlePostProcess(Doku_Event $event, $param) {
-        global $INFO, $ID, $ACT, $TOC;
+        global $INFO, $ID, $ACT, $conf;
+
+        // Workaround for locale wiki text that dose not need any TOC
+        if ($conf['maxtoclevel'] == 0) {
+            // once locale XHTML has rendered, therefore reset toc config parameters
+            $this->_setupTocConfig();
+            return;
+        }
 
         if (in_array($ACT, array('show', 'preview')) == false) return;
 
@@ -106,55 +128,34 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
         }
 
         // set PLACEHOLDER according to tocPostion config setting
-        if ($tocPosition >= 0) {
-            $topLv = @$meta['toptoclevel'] ?: $this->getConf('toptoclevel');
-            $maxLv = @$meta['maxtoclevel'] ?: $this->getConf('maxtoclevel');
-            $tocClass = @$meta['class'] ?: '';
-            $placeHolder = '<!-- TOC '.$topLv.'-'.$maxLv.' '.$tocClass.' -->';
-            switch ($tocPosition) {
-                case 0:
-                    $event->data[1] = $placeHolder.DOKU_LF.$event->data[1];
-                    break;
-                case 1:
-                    $event->data[1] = preg_replace('#</h1>#', "</h1>\n".$placeHolder, $event->data[1], 1);
-                    break;
-                case 6:
-                    $event->data[1] = preg_replace('#</(h[1-6])>#', "</$1>\n".$placeHolder, $event->data[1], 1);
-                    break;
-            }
+        switch ($tocPosition) {
+            case -1: // locator has already set placeholder
+            case 0:  // means no need to set placeholder, keep original position
+            case 9:  // means do not show auto-toc except {{TOC}}
+                return;
+            case 6:
+                $search  = '#</(h[1-6])>#';
+                $replace = '</$1>'.'<!-- TOC -->'.DOKU_LF;
+                break;
+            default: // 1,2,3,4,5
+                $search  = '#</(h'.$tocPosition.')>#';
+                $replace = '</$1>'.'<!-- TOC -->'.DOKU_LF;
         }
-
-        // replace PLACEHOLDERs
-        $placeHolder = '#<!-- TOC (\d+)-(\d+)(?: (.*?))? -->#'; // regex
-
-        if (preg_match_all($placeHolder, $event->data[1], $tokens, PREG_SET_ORDER)) {
-
-            foreach ($tokens as $token) {
-                $html = $this->html_toc($token[1], $token[2]);
-                if (!empty($token[3])) {
-                            $search =  '<div id="dw__toc"';
-                            $replace = $search.' class="'.trim($token[4]).'"';
-                            $html = str_replace($search, $replace, $html);
-                }
-                $event->data[1] = str_replace($token[0], $html, $event->data[1]);
-            }
-        }
+        $event->data[1] = preg_replace($search, $replace, $event->data[1], 1, $count);
     }
 
     /**
-     * Return html of customized TOC
+     * TPL_TOC_RENDER
+     * Pre-/postprocess the TOC array
      */
-    private function html_toc($topLv, $maxLv) {
-        global $TOC;
-        if (!count($TOC)) return '';
+    function handleTocRender(Doku_Event $event, $param) {
+        global $INFO, $conf;
+        $toc =& $event->data;
 
-        $items = $this->trim_toc($TOC, $topLv, $maxLv);
-        $html = html_TOC($items); // use function in inc/html.php
-        return $html;
-    }
-
-    private function trim_toc(array $toc, $topLv, $maxLv) {
-        global $conf;
+        // retrieve toc config parameters from metadata
+        $meta =& $INFO['meta']['toc'];
+        $topLv = @$meta['toptoclevel'] ?: $this->getConf('toptoclevel');
+        $maxLv = @$meta['maxtoclevel'] ?: $this->getConf('maxtoclevel');
 
         $items = array();
         foreach ($toc as $item) {
@@ -169,7 +170,56 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
             $item['level'] = $tocLv;
             $items[] = $item;
         }
-        return $items;
+        $event->data = $items;
+    }
+
+    /**
+     * TPL_CONTENT_DISPLAY
+     * Post process the XHTML output - Replace TOC PLACEHOLDER
+     */
+    function handleContentDisplay(Doku_Event $event, $param) {
+        global $INFO;
+
+        if ($INFO['prependTOC'] == false) return;
+
+        $meta =& $INFO['meta']['toc'];
+
+        // find html of TOC and keep it as $matches[0]
+        $search = '/<!-- TOC START -->.*?<!-- TOC END -->/ms';
+        if (preg_match($search, $event->data, $matches) === false) {
+            // $event->data dose not contain html of table of contents.
+            return;
+        } else {
+            if (isset($meta['class'])) {
+                $search =  '<div id="dw__toc"';
+                $replace = $search.' class="'.hsc(trim($meta['class'])).'"';
+                $toc_html = str_replace($search, $replace, $matches[0]);
+            } else {
+                $toc_html = $matches[0];
+            }
+        }
+
+        // replace PLACEHOLDER according to tocPostion config setting
+        $tocPosition = @$meta['position'] ?: $this->getConf('tocPosition');
+        switch ($tocPosition) {
+            case 0:
+                // update html of built-in toc with modified toc
+                $event->data = str_replace($matches[0], $toc_html, $event->data);
+                return;
+            case 9:
+                // remove html of built-in toc
+                $event->data = str_replace($matches[0], '', $event->data);
+                return;
+            default:
+                if (strpos($event->data, '<!-- TOC -->') !== false) {
+                    // remove html of built-in toc and replace placeholder with modified toc
+                    $event->data = str_replace($matches[0], '', $event->data);
+                    $event->data = str_replace('<!-- TOC -->', $toc_html, $event->data);
+                } else {
+                    // update html of built-in toc with class attribute
+                    $event->data = str_replace($matches[0], $toc_html, $event->data);
+                }
+        } // end of switch
     }
 
 }

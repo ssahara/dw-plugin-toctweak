@@ -60,7 +60,7 @@ class helper_plugin_toctweak extends DokuWiki_Plugin {
         if (!empty($classes)) {
             $tocClass = implode(' ', $classes);
         } else {
-            $tocClass = '';
+            $tocClass = null;
         }
 
         return array($topLv, $maxLv, $tocClass);
