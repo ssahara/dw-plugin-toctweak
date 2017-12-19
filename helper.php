@@ -19,8 +19,15 @@ class helper_plugin_toctweak extends DokuWiki_Plugin {
      */
     function parse($param) {
 
-        $params = explode(' ', $param);
+        if (strpos($param, '|') !== false) {
+            list($param, $tocTitle) = explode('|', $param);
+            // empty tocTitle will remove h3 'Table of Contents' headline
+            $tocTitle = trim($tocTitle); 
+        } else {
+            $tocTitle = null;
+        }
 
+        $params = explode(' ', $param);
         foreach ($params as $token) {
             if (empty($token)) continue;
 
@@ -63,7 +70,7 @@ class helper_plugin_toctweak extends DokuWiki_Plugin {
             $tocClass = null;
         }
 
-        return array($topLv, $maxLv, $tocClass);
+        return array($topLv, $maxLv, $tocClass, $tocTitle);
     }
 
 }

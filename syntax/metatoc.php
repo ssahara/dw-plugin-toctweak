@@ -60,7 +60,7 @@ class syntax_plugin_toctweak_metatoc extends DokuWiki_Syntax_Plugin {
             $param = substr($match, $start+1, -2);
         }
 
-        list($topLv, $maxLv, $tocClass) = $helper->parse($param);
+        list($topLv, $maxLv, $tocClass, $tocTitle) = $helper->parse($param);
 
         // check basic tocStyle
         if (!preg_match('/\btoc_.*\b/', $tocClass)) {
@@ -68,7 +68,7 @@ class syntax_plugin_toctweak_metatoc extends DokuWiki_Syntax_Plugin {
             $tocClass = implode(' ', array($tocStyle, $tocClass));
         }
 
-        $data = array($id, $topLv, $maxLv, $tocClass);
+        $data = array($id, $topLv, $maxLv, $tocClass, $tocTitle);
         return $data;
     }
 
@@ -78,7 +78,7 @@ class syntax_plugin_toctweak_metatoc extends DokuWiki_Syntax_Plugin {
     function render($format, Doku_Renderer $renderer, $data) {
         global $INFO, $conf, $lang;
 
-        list($id, $topLv, $maxLv, $tocClass) = $data;
+        list($id, $topLv, $maxLv, $tocClass, $tocTitle) = $data;
         list($id, $section) = explode('#', $id);
 
         switch ($format) {
@@ -108,10 +108,11 @@ class syntax_plugin_toctweak_metatoc extends DokuWiki_Syntax_Plugin {
 
                 // toc wrapper attributes
                 $attr['class'] = $tocClass;
+                $title = isset($tocTitle) ? $tocTitle : $lang['toc'];
 
                 $html = '<!-- METATOC START -->'.DOKU_LF;
                 $html.= '<div '.buildAttributes($attr).'>';
-                $html.= '<h3>'.$lang['toc'].'</h3>';
+                $html.= $title ? '<h3>'.hsc($title).'</h3>' : '';
                 $html.= '<div>';
                 $html.= html_buildlist($toc, 'toc', array($this, 'html_list_metatoc'));
                 $html.= '</div>';
