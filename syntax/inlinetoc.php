@@ -18,7 +18,6 @@ class syntax_plugin_toctweak_inlinetoc extends syntax_plugin_toctweak_metatoc {
         5 => '{{INLINETOC\b.*?}}',  // DOKU_LEXER_SPECIAL
     );
     protected $tocStyle = array(  // default toc visual design
-        0 => 'toc_hierarchical',
-        1 => 'toc_inline',
+        'INLINETOC' => 'toc_inline',
     );
 }
