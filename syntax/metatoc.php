@@ -12,7 +12,7 @@ class syntax_plugin_toctweak_metatoc extends DokuWiki_Syntax_Plugin {
 
     protected $mode;
     protected $pattern = array(
-        5 => '{{METATOC:?.*?}}',  // DOKU_LEXER_SPECIAL
+        5 => '{{(?:METATOC|TOC)\b.*?}}',
     );
     protected $tocStyle = 'toc_hierarchical'; // default toc visual design
 
@@ -38,14 +38,15 @@ class syntax_plugin_toctweak_metatoc extends DokuWiki_Syntax_Plugin {
         global $ID;
 
         // load helper object
-        $helper = $helper ?: $this->loadHelper($this->getPluginName());
+        isset($helper) || $helper = $this->loadHelper($this->getPluginName());
 
         // disable built-in TOC display
         //$handler->_addCall('notoc', array(), $pos);
 
         // Ex: {{METATOC>id#section 2-4 width18 toc_hierarchical}}
 
-        $start = strpos($this->pattern[5],':');
+        preg_match('/^{{([A-Z]+)([>: ]?)/', $match, $m);
+        $start = strlen($m[1]) +2;
         if ($match[$start] == '>') {
             list($id, $param) = explode(' ', substr($match, $start+1, -2), 2);
             list($page, $section) = explode('#', $id, 2);
@@ -60,7 +61,8 @@ class syntax_plugin_toctweak_metatoc extends DokuWiki_Syntax_Plugin {
 
         // check basic tocStyle
         if (!preg_match('/\btoc_.*\b/', $tocClass)) {
-            $tocClass = implode(' ', array($this->tocStyle, $tocClass));
+            $tocStyle = ($m[1] == 'METATOC') ? 'toc_hierarchical' : 'toc_dokuwiki';
+            $tocClass = implode(' ', array($tocStyle, $tocClass));
         }
 
         $data = array($id, $topLv, $maxLv, $tocClass);
@@ -107,7 +109,9 @@ class syntax_plugin_toctweak_metatoc extends DokuWiki_Syntax_Plugin {
                 $html = '<!-- METATOC START -->'.DOKU_LF;
                 $html.= '<div '.buildAttributes($attr).'>';
                 $html.= '<h3>'.$lang['toc'].'</h3>';
+                $html.= '<div>';
                 $html.= html_buildlist($toc, 'toc', array($this, 'html_list_metatoc'));
+                $html.= '</div>';
                 $html.= '</div>'.DOKU_LF;
                 $html.= '<!-- METATOC END -->'.DOKU_LF;
 
