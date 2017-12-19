@@ -15,7 +15,10 @@ require_once(dirname(__FILE__).'/metatoc.php');
 class syntax_plugin_toctweak_inlinetoc extends syntax_plugin_toctweak_metatoc {
 
     protected $pattern = array(
-        5 => '{{INLINETOC:?.*?}}',  // DOKU_LEXER_SPECIAL
+        5 => '{{INLINETOC\b.*?}}',  // DOKU_LEXER_SPECIAL
     );
-    protected $tocStyle = 'toc_inline'; // default toc visual design
+    protected $tocStyle = array(  // default toc visual design
+        0 => 'toc_hierarchical',
+        1 => 'toc_inline',
+    );
 }

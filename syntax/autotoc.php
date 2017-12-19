@@ -14,8 +14,7 @@ class syntax_plugin_toctweak_autotoc extends DokuWiki_Syntax_Plugin {
 
     protected $mode;
     protected $pattern = array(
-        5 => '~~TOC[: ].*?~~',
-        6 => '{{TOC[: ].*?}}',
+        5 => '~~(?:TOC:HERE|TOC)\b.*?~~',
     );
 
     function __construct() {
@@ -31,7 +30,6 @@ class syntax_plugin_toctweak_autotoc extends DokuWiki_Syntax_Plugin {
      */
     function connectTo($mode) {
         $this->Lexer->addSpecialPattern($this->pattern[5], $mode, $this->mode);
-        $this->Lexer->addSpecialPattern($this->pattern[6], $mode, $this->mode);
     }
 
     /**
@@ -44,9 +42,14 @@ class syntax_plugin_toctweak_autotoc extends DokuWiki_Syntax_Plugin {
         isset($helper) || $helper = $this->loadHelper($this->getPluginName());
 
         // parse syntax
-        $param = substr($match, 6, -2);
+        if (substr($match, 2, 8) == 'TOC:HERE') {
+            $param = substr($match, 11, -2);
+            $tocPosition = -1;
+        } else {
+            $param = substr($match, 6, -2);
+            $tocPosition = null;
+        }
         list($topLv, $maxLv, $tocClass) = $helper->parse($param);
-        $tocPosition = ($match[1] == '~') ? null : -1;
 
         return $data = array($ID, $tocPosition, $topLv, $maxLv, $tocClass);
     }

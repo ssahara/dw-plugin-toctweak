@@ -14,7 +14,10 @@ class syntax_plugin_toctweak_metatoc extends DokuWiki_Syntax_Plugin {
     protected $pattern = array(
         5 => '{{(?:METATOC|TOC)\b.*?}}',
     );
-    protected $tocStyle = 'toc_hierarchical'; // default toc visual design
+    protected $tocStyle = array(  // default toc visual design
+        0 => 'toc_hierarchical',
+        1 => 'toc_dokuwiki',
+    );
 
     function __construct() {
         $this->mode = substr(get_class($this), 7); // drop 'syntax_' from class name
@@ -61,7 +64,7 @@ class syntax_plugin_toctweak_metatoc extends DokuWiki_Syntax_Plugin {
 
         // check basic tocStyle
         if (!preg_match('/\btoc_.*\b/', $tocClass)) {
-            $tocStyle = ($m[1] == 'METATOC') ? 'toc_hierarchical' : 'toc_dokuwiki';
+            $tocStyle = ($m[1] == 'METATOC') ? $this->tocStyle[0] : $this->tocStyle[1];
             $tocClass = implode(' ', array($tocStyle, $tocClass));
         }
 
