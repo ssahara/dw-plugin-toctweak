@@ -14,7 +14,7 @@ class syntax_plugin_toctweak_autotoc extends DokuWiki_Syntax_Plugin {
 
     protected $mode;
     protected $pattern = array(
-        5 => '~~(?:TOC:HERE|TOC)\b.*?~~',
+        5 => '~~(?:TOC(?:_HERE)?)\b.*?~~',
     );
 
     function __construct() {
@@ -37,19 +37,22 @@ class syntax_plugin_toctweak_autotoc extends DokuWiki_Syntax_Plugin {
      */
     function handle($match, $state, $pos, Doku_Handler $handler) {
         global $ID;
+        static $call_counter = [];  // holds number of ~~TOC_HERE~~ used in the page
 
         // load helper object
-        isset($helper) || $helper = $this->loadHelper($this->getPluginName());
+        isset($tocTweak) || $tocTweak = $this->loadHelper($this->getPluginName());
 
         // parse syntax
-        if (substr($match, 2, 8) == 'TOC:HERE') {
+        if (strpos($match, 'TOC_HERE') !== false) {
+            // ignore ~~TOC_HERE~~ macro appeared more than once in a page
+            if ($call_counter[$ID]++ > 0) return;
             $param = substr($match, 11, -2);
             $tocPosition = -1;
         } else {
             $param = substr($match, 6, -2);
             $tocPosition = null;
         }
-        list($topLv, $maxLv, $tocClass) = $helper->parse($param);
+        list($topLv, $maxLv, $tocClass) = $tocTweak->parse($param);
 
         return $data = array($ID, $tocPosition, $topLv, $maxLv, $tocClass);
     }
