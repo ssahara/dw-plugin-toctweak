@@ -83,12 +83,9 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
      * Make sure the built-in TOC is not printed
      */
     function handleActRender(Doku_Event $event, $param) {
-        global $INFO, $ACT;
-        // TOC control should be changeable in only normal page
-        if (in_array($ACT, array('show', 'preview')) == false) return;
-        if (($INFO['meta']['toc']['position'] < 0)||($this->getConf('tocPosition') > 0)) {
-                $INFO['prependTOC'] = false;
-                $INFO['prependTOC'] = true;  // DEBUG anyway show original TOC
+        global $INFO;
+        if ($this->getConf('tocPosition') == 9) {
+            $INFO['prependTOC'] = false; // disable built-in auto-toc
         }
     }
 
@@ -103,7 +100,7 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
      * Note: $event->data[1] dose not contain html of table of contents.
      */
     function handlePostProcess(Doku_Event $event, $param) {
-        global $INFO, $ID, $ACT, $conf;
+        global $INFO, $ID, $ACT;
 
         // Workaround for locale wiki text that dose not need any TOC
         if ($conf['maxtoclevel'] == 0) {
@@ -122,7 +119,7 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
         // TOC Position
         $tocPosition = @$meta['position'] ?: $this->getConf('tocPosition');
         if ($ACT=='preview') {
-            if (preg_match('#<!-- TOC .*?-->#', $event->data[1])) {
+            if (strpos($event->data[1], '<!-- TOC -->') !== false) {
                 $tocPosition = -1;
             }
         }
@@ -140,7 +137,7 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
             default: // 1,2,3,4,5
                 $search  = '#</(h'.$tocPosition.')>#';
                 $replace = '</$1>'.'<!-- TOC -->'.DOKU_LF;
-        }
+        } // end of switch
         $event->data[1] = preg_replace($search, $replace, $event->data[1], 1, $count);
     }
 
