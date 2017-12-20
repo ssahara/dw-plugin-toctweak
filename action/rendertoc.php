@@ -20,9 +20,8 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
     function register(Doku_Event_Handler $controller) {
         $controller->register_hook('PARSER_CACHE_USE', 'BEFORE', $this, 'handleParserCache');
 
-        $controller->register_hook('TPL_ACT_RENDER', 'BEFORE', $this, 'handleActRender');
-        $controller->register_hook('TPL_TOC_RENDER', 'BEFORE', $this, 'handleTocRender');
         $controller->register_hook('RENDERER_CONTENT_POSTPROCESS', 'BEFORE', $this, 'handlePostProcess');
+        $controller->register_hook('TPL_TOC_RENDER', 'BEFORE', $this, 'handleTocRender');
         $controller->register_hook('TPL_CONTENT_DISPLAY', 'BEFORE', $this, 'handleContentDisplay');
     }
 
@@ -79,17 +78,6 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
     }
 
     /**
-     * TPL_ACT_RENDER
-     * Make sure the built-in TOC is not printed
-     */
-    function handleActRender(Doku_Event $event, $param) {
-        global $INFO;
-        if ($this->getConf('tocPosition') == 9) {
-            $INFO['prependTOC'] = false; // disable built-in auto-toc
-        }
-    }
-
-    /**
      * RENDERER_CONTENT_POSTPROCESS
      * set placeholder for TOC html "<!-- TOC -->" according to $tocPosition
      * -1: PLACEHOLDER set by syntax component
@@ -100,7 +88,7 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
      * Note: $event->data[1] dose not contain html of table of contents.
      */
     function handlePostProcess(Doku_Event $event, $param) {
-        global $INFO, $ID, $ACT;
+        global $INFO, $ID, $ACT, $conf;
 
         // Workaround for locale wiki text that dose not need any TOC
         if ($conf['maxtoclevel'] == 0) {
@@ -109,7 +97,7 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
             return;
         }
 
-        if (in_array($ACT, array('show', 'preview')) == false) return;
+     // if (in_array($ACT, array('show', 'preview')) == false) return;
 
         $meta =& $INFO['meta']['toc'];
 

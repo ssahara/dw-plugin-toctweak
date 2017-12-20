@@ -43,9 +43,6 @@ class syntax_plugin_toctweak_metatoc extends DokuWiki_Syntax_Plugin {
         // load helper object
         isset($tocTweak) || $tocTweak = $this->loadHelper($this->getPluginName());
 
-        // should disable built-in TOC here?
-        //$handler->_addCall('notoc', array(), $pos);
-
         // Ex: {{METATOC>id#section 2-4 width18 toc_hierarchical}}
 
         preg_match('/^{{([A-Z]+)([>: ]?)/', $match, $m);
@@ -61,6 +58,11 @@ class syntax_plugin_toctweak_metatoc extends DokuWiki_Syntax_Plugin {
         }
 
         list($topLv, $maxLv, $tocClass, $tocTitle) = $tocTweak->parse($param);
+
+        // should disable built-in TOC here?
+        if ($m[1] == 'TOC') {
+            $handler->_addCall('notoc', array(), $pos);
+        }
 
         // check basic tocStyle
         if (!preg_match('/\btoc_.*\b/', $tocClass)) {
