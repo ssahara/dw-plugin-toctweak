@@ -4,7 +4,7 @@
  */
 
 $meta['tocAllHeads'] = array('onoff');
-$meta['tocPosition'] = array('multichoice','_choices' => array(0,1,6,9));
+$meta['tocPosition'] = array('multichoice','_choices' => array(0,1,2,6,9));
 
 // Takeover TOC settings from main process
 // @see DOKU_INC/lib/plugins/config/settings/config.metadata.php
