@@ -17,6 +17,8 @@ class syntax_plugin_toctweak_autotoc extends DokuWiki_Syntax_Plugin {
         5 => '~~(?:TOC(?:_HERE)?)\b.*?~~',
     );
 
+    const TOC_HERE = '<!-- TOC_HERE -->';
+
     function __construct() {
         $this->mode = substr(get_class($this), 7); // drop 'syntax_' from class name
     }
@@ -79,9 +81,9 @@ class syntax_plugin_toctweak_autotoc extends DokuWiki_Syntax_Plugin {
 
             case 'xhtml':
                 // render PLACEHOLDER, which will be replaced later
-                // through  action event handler handleContentDisplay()
+                // through action event handler handleContentDisplay()
                 if (isset($tocPosition)) {
-                    $renderer->doc .= '<!-- TOC -->'.DOKU_LF;
+                    $renderer->doc .= self::TOC_HERE.DOKU_LF;
                     return true;
                 }
         } // end of switch
