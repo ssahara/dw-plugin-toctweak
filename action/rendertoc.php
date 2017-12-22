@@ -14,7 +14,7 @@ if(!defined('DOKU_INC')) die();
 
 class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
 
-    const TOC_HERE = '<!-- TOC_HERE -->';
+    const TOC_HERE = '<!-- TOC_HERE -->'.DOKU_LF;
 
     /**
      * Register event handlers
@@ -25,7 +25,6 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
         $controller->register_hook('RENDERER_CONTENT_POSTPROCESS', 'BEFORE', $this, 'handlePostProcess');
         $controller->register_hook('TPL_ACT_RENDER', 'BEFORE', $this, 'handleActRender');
         $controller->register_hook('TPL_TOC_RENDER', 'BEFORE', $this, 'handleTocRender');
-        $controller->register_hook('TPL_CONTENT_DISPLAY', 'BEFORE', $this, 'handleContentDisplay');
     }
 
 
@@ -92,7 +91,8 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
      * Note: $event->data[1] dose not contain html of table of contents.
      */
     function handlePostProcess(Doku_Event $event, $param) {
-        global $INFO, $ID, $ACT, $conf;
+        global $INFO, $TOC, $ACT, $conf;
+        $meta =& $INFO['meta']['toc'];
 
         // Workaround for locale wiki text that dose not need any TOC
         if ($conf['maxtoclevel'] == 0) {
@@ -101,43 +101,60 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
             return;
         }
 
-     // if (in_array($ACT, array('show', 'preview')) == false) return;
-
-        $meta =& $INFO['meta']['toc'];
-
-        // exclude sidebar, etc.
-        if ($INFO['id'] != $ID) return;
-
         // TOC Position
         $tocPosition = @$meta['position'] ?: $this->getConf('tocPosition');
-        if ($ACT=='preview') {
+        if ($ACT == 'preview') {
             if (strpos($event->data[1], self::TOC_HERE) !== false) {
                 $tocPosition = -1;
             }
         }
 
-        // set PLACEHOLDER according to tocPostion config setting
+        // Stage 1: prepare html of table of content
+        // Note: $TOC must be modified in handleTocRender() if necessary
+        $toc_html = html_TOC($TOC); // use function in inc/html.php
+        if ($toc_html && isset($meta['class'])) {
+            $search =  '<div id="dw__toc"';
+            $replace = $search.' class="'.hsc($meta['class']).'"';
+            $toc_html = str_replace($search, $replace, $toc_html);
+            unset($search, $replace);
+        }
+
+        // Stage 2: set PLACEHOLDER according to tocPostion config setting
         switch ($tocPosition) {
-            case -1: // locator has already set placeholder
-            case 0:  // means no need to set placeholder, keep original position
-            case 9:  // means do not show auto-toc except {{TOC}}
-                return;
-            case 6:
-                $search  = '#</(h[1-6])>#';
-                $replace = '</$1>'.self::TOC_HERE.DOKU_LF;
+            case -1: // already set placeholder by syntax/autotoc.php
+                $count = 1;
                 break;
-            default: // 1,2,3,4,5
-                $search  = '#</(h'.$tocPosition.')>#';
-                $replace = '</$1>'.self::TOC_HERE.DOKU_LF;
+            case 0:  // means no need to set placeholder, keep original position
+                if (isset($meta['class'])) {
+                    $event->data[1] = self::TOC_HERE.$event->data[1];
+                    $count = 1;
+                }
+                break;
+            case 9:  // means do not show auto-toc except {{TOC_HERE}}
+                break;
+            default: // 1,2,3,4,5 or 6
+                $search  = '#</(h'.(($tocPosition == 6) ? '[1-6]' : $tocPosition).')>#';
+                $replace = '</$1>'.self::TOC_HERE;
+                $event->data[1] = preg_replace($search, $replace, $event->data[1], 1, $count);
+                if (!$count) {
+                    // show toc original position if placeholder replacement failed
+                    $event->data[1] = self::TOC_HERE.$event->data[1];
+                    $count = 1;
+                }
+                unset($search, $replace);
         } // end of switch
-        $event->data[1] = preg_replace($search, $replace, $event->data[1], 1, $count);
+
+        // Stage 3: replace PLACEHOLDER
+        if ($count > 0) {
+            // try to replace placeholder according to tocPostion
+            $event->data[1] = str_replace(self::TOC_HERE, $toc_html, $event->data[1], $count);
+        }
+        return;
     }
 
     /**
      * TPL_ACT_RENDER
-     * hide auto-toc when it should be shown at different position,
-     * The placeholder which is set during handlePostProcess() will be
-     * replaced with html of toc in handleContentDisplay() stage.
+     * hide auto-toc when it should be shown at different position
      */
     function handleActRender(Doku_Event $event, $param) {
         global $INFO;
@@ -155,7 +172,7 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
      */
     function handleTocRender(Doku_Event $event, $param) {
         global $INFO, $conf;
-        $toc =& $event->data; // = $TOC
+        $toc =& $event->data; // reference to global $TOC
 
         // retrieve toc config parameters from metadata
         $meta =& $INFO['meta']['toc'];
@@ -176,43 +193,6 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
             $items[] = $item;
         }
         $event->data = $items;
-    }
-
-    /**
-     * TPL_CONTENT_DISPLAY
-     * Post process the XHTML output - Replace TOC PLACEHOLDER
-     */
-    function handleContentDisplay(Doku_Event $event, $param) {
-        global $INFO, $TOC;
-
-        if ($INFO['prependTOC'] == true) return; // nothing to do here
-
-        // get html of built-in TOC that has be modified in handleTocRender()
-        if (!count($TOC)) return;
-        $toc_html = html_TOC($TOC); // use function in inc/html.php
-
-        $meta =& $INFO['meta']['toc'];
-
-        if (isset($meta['class'])) {
-            $search =  '<div id="dw__toc"';
-            $replace = $search.' class="'.hsc($meta['class']).'"';
-            $toc_html = str_replace($search, $replace, $toc_html);
-        }
-
-        $tocPosition = @$meta['position'] ?: $this->getConf('tocPosition');
-
-        // try to replace placeholder according to tocPostion
-        if ($tocPosition == 9) {
-            return;
-        } elseif (strpos($event->data, self::TOC_HERE) !== false) {
-            $event->data = str_replace(self::TOC_HERE, $toc_html, $event->data, $count);
-        }
-        // show toc original position if placeholder replacement failed
-        if (($tocPosition == 0) or !$count) {
-            $event->data = $toc_html.DOKU_LF.$event->data;
-        }
-
-        return;
     }
 
 }
