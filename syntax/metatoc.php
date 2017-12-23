@@ -76,7 +76,8 @@ class syntax_plugin_toctweak_metatoc extends DokuWiki_Syntax_Plugin {
         global $INFO, $conf, $lang;
 
         list($id, $topLv, $maxLv, $tocClass, $tocTitle) = $data;
-        list($id, $section) = explode('#', $id);
+        list($id, $hash) = explode('#', $id);
+        $section = $hash ? sectionID($hash, $check = false) : '';
 
         switch ($format) {
             case 'metadata':
