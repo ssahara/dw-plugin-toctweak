@@ -10,17 +10,24 @@ Allow to tune TOC property:
 2. top and max level of headings, 
 3. position with css class.
 
-Syntax
+Usage
 ------
+#### Control macro for DokuWiki built-in TOC
+
+    ~~CLOSETOC~~         Let TOC box initially closed
+    ~~TOC 2-3~~          Headlines within level 2 to 3 range are picked up in the TOC
+    ~~TOC_HERE 2-3~~     TOC box will appear where the macro is placed in the page
+
+The built-in toc box should be one per page, therefore more than once `~~TOC_HERE~~` will be ignored.
 
 
-    ~~CLOSETOC~~ 
+#### Additional methods to show TOC (in different looks/design)
 
-    ~~TOC: topTocLevel-maxTocLevel ~~
+    {{TOC 1-2}}
+    {{TOC 3-3 >:wiki:syntax#Text Conversions | Text Conversions}}
+    {{INLINETOC 2-2 >:wiki:syntax}}
+    {{METATOC}}
 
-    {{TOC}} or {{TOC:class topTocLevel-maxTocLevel}}
-
-    {{INLINETOC}} or {{INLINETOC:class topTocLevel-maxTocLevel}}
 
 ----
 Licensed under the GNU Public License (GPL) version 2
