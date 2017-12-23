@@ -3,6 +3,8 @@
  */
 #dw__toc.wide {
     width: 100%;
+    margin: .5em 0;
+    border: 1px solid __border__;
 }
 #dw__toc.wide h3 {
     background-color: #f8f8f8;

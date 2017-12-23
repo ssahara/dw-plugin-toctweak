@@ -16,6 +16,7 @@ Usage
 
     ~~CLOSETOC~~         Let TOC box initially closed
     ~~TOC 2-3~~          Headlines within level 2 to 3 range are picked up in the TOC
+    ~~TOC 2-3 wide~~     Widen TOC box by assigning "wide" css class
     ~~TOC_HERE 2-3~~     TOC box will appear where the macro is placed in the page
 
 The built-in toc box should be one per page, therefore more than once `~~TOC_HERE~~` will be ignored.
