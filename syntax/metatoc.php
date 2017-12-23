@@ -43,21 +43,16 @@ class syntax_plugin_toctweak_metatoc extends DokuWiki_Syntax_Plugin {
         // load helper object
         isset($tocTweak) || $tocTweak = $this->loadHelper($this->getPluginName());
 
-        // Ex: {{METATOC>id#section 2-4 width18 toc_hierarchical}}
+        // Ex: {{METATOC 2-4 width18 toc_hierarchical >id#section | title}}
 
         preg_match('/^{{([A-Z]+)([>: ]?)/', $match, $m);
         $start = strlen($m[1]) +2;
-        if ($match[$start] == '>') {
-            list($id, $param) = explode(' ', substr($match, $start+1, -2), 2);
-            list($page, $section) = explode('#', $id, 2);
-            $page = $page ?: $ID;
-            $id = $page.(empty($section) ? '' : '#'.$section);
-        } else {
-            $id = $ID;
-            $param = substr($match, $start+1, -2);
-        }
+        $param = substr($match, $start+1, -2);
 
-        list($topLv, $maxLv, $tocClass, $tocTitle) = $tocTweak->parse($param);
+        list($topLv, $maxLv, $tocClass, $tocTitle, $id) = $tocTweak->parse($param);
+
+        $hash = strstr($id, '#');
+        if ($id == $hash) { $id = $ID.$hash; }
 
         // should disable built-in TOC here?
         if ($m[1] == 'TOC') {
@@ -86,7 +81,7 @@ class syntax_plugin_toctweak_metatoc extends DokuWiki_Syntax_Plugin {
         switch ($format) {
             case 'metadata':
                 if ($id != $INFO['id']) { // current page
-                    // prepare dependency info for PARSER_CACHE_USE event handler
+                    // set dependency info for PARSER_CACHE_USE event handler
                     $renderer->meta['relation']['toctweak'][] = metaFN($id,'.meta');
                 }
                 return true;

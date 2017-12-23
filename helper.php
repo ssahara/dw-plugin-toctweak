@@ -19,6 +19,9 @@ class helper_plugin_toctweak extends DokuWiki_Plugin {
      */
     function parse($param) {
 
+        // Ex: {{METATOC 2-4 width18 toc_hierarchical >id#section | title}}
+
+        // get tocTitle
         if (strpos($param, '|') !== false) {
             list($param, $tocTitle) = explode('|', $param);
             // empty tocTitle will remove h3 'Table of Contents' headline
@@ -27,6 +30,12 @@ class helper_plugin_toctweak extends DokuWiki_Plugin {
             $tocTitle = null;
         }
 
+        // get id#section
+        list($param, $id) = explode('>', $param, 2);
+        list($id, $hash) = array_map('trim', explode('#', $id, 2));
+        $id = cleanID($id).($hash ? '#'.$hash : '');
+
+        // get other parameters
         $params = explode(' ', $param);
         foreach ($params as $token) {
             if (empty($token)) continue;
@@ -70,7 +79,7 @@ class helper_plugin_toctweak extends DokuWiki_Plugin {
             $tocClass = null;
         }
 
-        return array($topLv, $maxLv, $tocClass, $tocTitle);
+        return array($topLv, $maxLv, $tocClass, $tocTitle, $id);
     }
 
 }
