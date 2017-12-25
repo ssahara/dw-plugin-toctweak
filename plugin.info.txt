@@ -2,6 +2,6 @@ base  toctweak
 name  TOC Tweak ver.2
 author Satoshi Sahara
 email  sahara.satoshi@gmail.com
-date   2017-12-23
+date   2017-12-25
 desc   Customise table of contents (TOC); a) initial toggle status, b) top and max level of headlines, c) position with css class.
 url    https://www.dokuwiki.org/plugin:toctweak
