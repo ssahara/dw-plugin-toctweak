@@ -28,19 +28,31 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
     }
 
 
+    /**
+     * Overwrite toc config parameters to catch up all headings in pages
+     *  toptoclevel : highest headline level which can appear in table of contents
+     *  maxtoclevel : lowest headline level to include in table of contents
+     *  tocminheads : minimum amount of headlines to show table of contents
+     *
+     * Note: setting tocminheads to 1 may cause trouble in preview.txt ?
+     */
     protected function _setupTocConfig($active=true) {
-        global $conf;
+        global $ACT, $conf;
+
         if (!$this->getConf('tocAllHeads')) return;
 
-        // Overwrite toc config parameters to catch up all headings in pages
-        //  toptoclevel : highest heading level which can appear in table of contents
-        //  maxtoclevel : lowest heading level to include in table of contents
-        //  tocminheads : minimum amount of headlines to show table of contents
-        // Note: setting tocminheads to 1 may cause trouble in preview.txt ?
-
-        $conf['toptoclevel'] = 1;
-        $conf['maxtoclevel'] = ($active) ? 5 : 0;
-        $conf['tocminheads'] = $this->getConf('tocminheads'); 
+        if (in_array($ACT, ['admin'])) {
+            // admin plugins such as the Congig Manager may have own TOC
+            $conf['toptoclevel'] = 1;
+            $conf['maxtoclevel'] = 3;
+            $conf['tocminheads'] = 3;
+        } else {
+            // try to disable TOC generation for locale wiki files
+            // e.g. for preview.txt
+            $conf['toptoclevel'] = 1;
+            $conf['maxtoclevel'] = ($active) ? 5 : 0;
+            $conf['tocminheads'] = $this->getConf('tocminheads');
+        }
     }
 
     /**
@@ -54,11 +66,10 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
         // exception when $cache->page is blank, we assume it is some locale wiki
         // text and $conf['maxtoclevel'] = 0 to prepend adding placeholder in
         // handlePostProcess()
-
         if ($cache->page) {
-            $active = true;
-            $this->_setupTocConfig($active);
+            $this->_setupTocConfig();
         } else {
+            // assume as locale wiki files
             ($cache->mode == 'i') && $this->_setupTocConfig(false);
             return;
         }
@@ -91,15 +102,16 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
      * Note: $event->data[1] dose not contain html of table of contents.
      */
     function handlePostProcess(Doku_Event $event, $param) {
-        global $INFO, $TOC, $ACT, $conf;
-        $meta =& $INFO['meta']['toc'];
+        global $INFO, $TOC, $conf;
 
         // Workaround for locale wiki text that dose not need any TOC
         if ($conf['maxtoclevel'] == 0) {
-            // once locale XHTML has rendered, therefore reset toc config parameters
+            // once locale XHTML has rendered, then reset toc config parameters
             $this->_setupTocConfig();
             return;
         }
+
+        $meta =& $INFO['meta']['toc'];
 
         // TOC Position
         $tocPosition = @$meta['position'] ?: $this->getConf('tocPosition');
@@ -157,7 +169,13 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
      * hide auto-toc when it should be shown at different position
      */
     function handleActRender(Doku_Event $event, $param) {
-        global $INFO;
+        global $ACT, $INFO;
+
+        // admin plugins such as the Congig Manager may have own TOC
+        if (in_array($ACT, ['admin'])) {
+            return;
+        }
+
         $meta =& $INFO['meta']['toc'];
         $tocPosition = @$meta['position'] ?: $this->getConf('tocPosition');
 
@@ -171,19 +189,24 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
      * Pre-/postprocess the TOC array
      */
     function handleTocRender(Doku_Event $event, $param) {
-        global $INFO, $conf;
-        $toc =& $event->data; // reference to global $TOC
+        global $ACT, $INFO, $conf;
+
+        // admin plugins such as the Congig Manager may have own TOC
+        if (in_array($ACT, ['admin'])) {
+            return;
+        }
 
         // retrieve toc config parameters from metadata
         $meta =& $INFO['meta']['toc'];
         $topLv = @$meta['toptoclevel'] ?: $this->getConf('toptoclevel');
         $maxLv = @$meta['maxtoclevel'] ?: $this->getConf('maxtoclevel');
 
+        $toc =& $event->data; // reference to global $TOC
         $items = array();
         foreach ($toc as $item) {
             // get headline level in real page
             $Lv = $item['level'] + $conf['toptoclevel'] -1;
-            // get new toc level from header level
+            // get new toc level from headline level
             $tocLv = $Lv - $topLv +1;
 
             if (($Lv < $topLv) || ($Lv > $maxLv)) {
