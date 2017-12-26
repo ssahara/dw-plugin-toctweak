@@ -39,18 +39,24 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
     protected function _setupTocConfig($active=true) {
         global $ACT, $conf;
 
-        if (!$this->getConf('tocAllHeads')) return;
-
         if (in_array($ACT, ['admin'])) {
             // admin plugins such as the Congig Manager may have own TOC
             $conf['toptoclevel'] = 1;
             $conf['maxtoclevel'] = 3;
             $conf['tocminheads'] = 3;
-        } else {
+            return;
+        }
+
+        if ($this->getConf('tocAllHeads')) {
             // try to disable TOC generation for locale wiki files
             // e.g. for preview.txt
             $conf['toptoclevel'] = 1;
             $conf['maxtoclevel'] = ($active) ? 5 : 0;
+            $conf['tocminheads'] = $this->getConf('tocminheads');
+        } else {
+            // just set plugin's toc settings to DW original conf array
+            $conf['toptoclevel'] = $this->getConf('toptoclevel');
+            $conf['maxtoclevel'] = $this->getConf('maxtoclevel');
             $conf['tocminheads'] = $this->getConf('tocminheads');
         }
     }
