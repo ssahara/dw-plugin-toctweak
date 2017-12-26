@@ -95,7 +95,7 @@ class syntax_plugin_toctweak_sidetoc extends syntax_plugin_toctweak_metatoc {
      */
     function html_list_metatoc($item) {
         $html = '<span class="li">';
-        $html.= '<a href="'.$item['url'].'">';
+        $html.= '<a href="#'.$item['hid'].'">';
         $html.= hsc($item['title']).'</a>';
         $html.= '</span>';
         return $html;
