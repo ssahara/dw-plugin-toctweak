@@ -14,7 +14,7 @@ class syntax_plugin_toctweak_autotoc extends DokuWiki_Syntax_Plugin {
 
     protected $mode;
     protected $pattern = array(
-        5 => '~~(?:TOC(?:_HERE)?)\b.*?~~',
+        5 => '~~(?:TOC_HERE|NOTOC|TOC)\b.*?~~',
     );
 
     const TOC_HERE = '<!-- TOC_HERE -->'.DOKU_LF;
@@ -45,16 +45,20 @@ class syntax_plugin_toctweak_autotoc extends DokuWiki_Syntax_Plugin {
         isset($tocTweak) || $tocTweak = $this->loadHelper($this->getPluginName());
 
         // parse syntax
-        if (strpos($match, 'TOC_HERE') !== false) {
+        preg_match('/^~~([A-Z_]+)/', $match, $m);
+        $start = strlen($m[1]) +2;
+        $param = substr($match, $start+1, -2);
+        list($topLv, $maxLv, $tocClass) = $tocTweak->parse($param);
+
+        if ($m[1] == 'TOC_HERE') {
             // ignore ~~TOC_HERE~~ macro appeared more than once in a page
             if ($call_counter[$ID]++ > 0) return;
-            $param = substr($match, 11, -2);
             $tocPosition = -1;
         } else {
-            $param = substr($match, 6, -2);
+            // TOC or NOTOC
+            if ($m[1] == 'NOTOC') $handler->_addCall('notoc', array(), $pos);
             $tocPosition = null;
         }
-        list($topLv, $maxLv, $tocClass) = $tocTweak->parse($param);
 
         return $data = array($ID, $tocPosition, $topLv, $maxLv, $tocClass);
     }
