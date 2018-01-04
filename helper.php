@@ -1,6 +1,9 @@
 <?php
 /**
- * DokuWiki plugin TOC Tweak;
+ * DokuWiki plugin TOC Tweak; helper component
+ *
+ * @license    GPL 2 (http://www.gnu.org/licenses/gpl.html)
+ * @author     Satoshi Sahara <sahara.satoshi@gmail.com>
  */
 if(!defined('DOKU_INC')) die();
 
@@ -40,7 +43,7 @@ class helper_plugin_toctweak extends DokuWiki_Plugin {
         foreach ($params as $token) {
             if (empty($token)) continue;
 
-            // get TOC generation parameters, like "toptocleevl"-"maxteclevel"
+            // get TOC generation parameters, like "toptocleevl"-"maxtoclevel"
             if (preg_match('/^(?:(\d+)-(\d+)|^(\-?\d+))$/', $token, $matches)) {
                 if (count($matches) == 4) {
                     if (strpos($matches[3], '-') !== false) {
@@ -87,8 +90,6 @@ class helper_plugin_toctweak extends DokuWiki_Plugin {
      */
     function get_metatoc($id, $topLv=null, $maxLv=null, $headline='') {
         global $ID, $INFO;
-        $topLv = isset($topLv) ? $topLv : $this->getConf('toptoclevel');
-        $maxLv = isset($maxLv) ? $maxLv : $this->getConf('maxtoclevel');
 
         // retrieve TableOfContents from metadata
         if ($id == $INFO['id']) {
@@ -119,8 +120,10 @@ class helper_plugin_toctweak extends DokuWiki_Plugin {
     /**
      * toc array filter
      */
-    function _toc(array $toc, $topLv, $maxLv, $headline='') {
+    function _toc(array $toc, $topLv=null, $maxLv=null, $headline='') {
         global $conf;
+        $topLv = isset($topLv) ? $topLv : $this->getConf('toptoclevel');
+        $maxLv = isset($maxLv) ? $maxLv : $this->getConf('maxtoclevel');
 
         $headline_matched = empty($headline);
         $headline_level   = null;
@@ -147,10 +150,9 @@ class helper_plugin_toctweak extends DokuWiki_Plugin {
             // exclude out-of-range item based on headline level
             if (($Lv < $topLv)||($Lv > $maxLv)) {
                 continue;
+            } else { // interested toc entry
+                $item['level'] = $Lv - $topLv +1;
             }
-
-            // interested toc entry
-            $item['level'] = $Lv - $topLv +1;
             $items[] = $item;
         }
         return $items;
