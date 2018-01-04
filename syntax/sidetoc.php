@@ -66,8 +66,11 @@ class syntax_plugin_toctweak_sidetoc extends syntax_plugin_toctweak_metatoc {
                 return false;
 
             case 'xhtml':
+                // load helper object
+                isset($tocTweak) || $tocTweak = $this->loadHelper($this->getPluginName());
+
                 // retrieve TableOfContents from metadata
-                $toc = $this->get_metatoc($id, $topLv, $maxLv, $section);
+                $toc = $tocTweak->get_metatoc($id, $topLv, $maxLv, $section);
 
                 // toc wrapper attributes
                 $attr['class'] = $tocClass;

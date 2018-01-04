@@ -90,8 +90,11 @@ class syntax_plugin_toctweak_metatoc extends DokuWiki_Syntax_Plugin {
             case 'xhtml':
              // $renderer->info['cache'] = false; // disable xhtml cache
 
+                // load helper object
+                isset($tocTweak) || $tocTweak = $this->loadHelper($this->getPluginName());
+
                 // retrieve TableOfContents from metadata
-                $toc = $this->get_metatoc($id, $topLv, $maxLv, $section);
+                $toc = $tocTweak->get_metatoc($id, $topLv, $maxLv, $section);
                 if (empty($toc)) {
                     $toc[] = array(  // error entry
                         'hid'   => $section,
@@ -139,62 +142,4 @@ class syntax_plugin_toctweak_metatoc extends DokuWiki_Syntax_Plugin {
         return $html;
     }
 
-    /**
-     * Get cuaatomized toc array using metafata of the page
-     */
-    function get_metatoc($id, $topLv=null, $maxLv=null, $headline='') {
-        global $ID, $conf;
-        $topLv = isset($topLv) ? $topLv : $this->getConf('toptoclevel');
-        $maxLv = isset($maxLv) ? $maxLv : $this->getConf('maxtoclevel');
-        $headline_matched = empty($headline);
-        $headline_level   = null;
-
-        $toc = array();
-
-        // retrieve TableOfContents from metadata
-        $items = p_get_metadata($id,'description tableofcontents');
-        if ($items == null) return $toc;
-
-        foreach ($items as $item) {
-            // skip non-interested toc entries
-            if ($headline) {
-                if (!$headline_matched) {
-                    if ($item['hid'] == $headline) {
-                        $headline_matched = true;
-                        $headline_level = $item['level'];
-                    } else {
-                        continue;
-                    }
-                } else {
-                    if ($item['level'] <= $headline_level) continue;
-                }
-            }
-
-            // get headline level in real page
-            $Lv = $item['level'] + $conf['toptoclevel'] -1;
-            // get depth in metatoc
-            $tocLv = $Lv - $topLv +1;
-
-            // exclude out-of-range item based on headline level
-            if (($Lv < $topLv)||($Lv > $maxLv)) {
-                continue;
-            }
-
-            // interested toc entry
-            $item['level'] = $tocLv;
-
-            // add properties for toc of that is not current page
-            if ($id != $ID) {
-                // headlines should be found in other wiki page
-                $item['page']  = $id;
-                $item['url']   = wl($id.'#'.$item['hid']);
-                $item['class'] = 'wikilink1';
-            } else {
-                // headlines in current page (internal link)
-                $item['url']  = '#'.$item['hid'];
-            }
-            $toc[] = $item;
-        }
-        return $toc;
-    }
 }

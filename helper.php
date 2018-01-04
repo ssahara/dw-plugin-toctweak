@@ -82,5 +82,79 @@ class helper_plugin_toctweak extends DokuWiki_Plugin {
         return array($topLv, $maxLv, $tocClass, $tocTitle, $id);
     }
 
+    /**
+     * Get customized toc array using metadata of the page
+     */
+    function get_metatoc($id, $topLv=null, $maxLv=null, $headline='') {
+        global $ID, $INFO;
+        $topLv = isset($topLv) ? $topLv : $this->getConf('toptoclevel');
+        $maxLv = isset($maxLv) ? $maxLv : $this->getConf('maxtoclevel');
+
+        // retrieve TableOfContents from metadata
+        if ($id == $INFO['id']) {
+            $toc = $INFO['meta']['description']['tableofcontents'];
+        } else {
+            $toc = p_get_metadata($id,'description tableofcontents');
+        }
+        if ($toc == null) return array();
+
+        // get interested headline items
+        $toc = $this->_toc($toc, $topLv, $maxLv, $headline);
+
+        foreach ($toc as $item) {
+            // add properties for toc of that is not current page
+            if ($id != $ID) {
+                // headlines should be found in other wiki page
+                $item['page']  = $id;
+                $item['url']   = wl($id.'#'.$item['hid']);
+                $item['class'] = 'wikilink1';
+            } else {
+                // headlines in current page (internal link)
+                $item['url']  = '#'.$item['hid'];
+            }
+        } // end of foreach
+        return $toc;
+    }
+
+    /**
+     * toc array filter
+     */
+    function _toc(array $toc, $topLv, $maxLv, $headline='') {
+        global $conf;
+
+        $headline_matched = empty($headline);
+        $headline_level   = null;
+        $items = array();
+
+        foreach ($toc as $item) {
+            // skip non-interested toc entries
+            if ($headline) {
+                if (!$headline_matched) {
+                    if ($item['hid'] == $headline) {
+                        $headline_matched = true;
+                        $headline_level = $item['level'];
+                    } else {
+                        continue;
+                    }
+                } else {
+                    if ($item['level'] <= $headline_level) continue;
+                }
+            }
+
+            // get headline level in real page
+            $Lv = $item['level'] + $conf['toptoclevel'] -1;
+
+            // exclude out-of-range item based on headline level
+            if (($Lv < $topLv)||($Lv > $maxLv)) {
+                continue;
+            }
+
+            // interested toc entry
+            $item['level'] = $Lv - $topLv +1;
+            $items[] = $item;
+        }
+        return $items;
+    }
+
 }
 

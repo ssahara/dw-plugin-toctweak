@@ -108,7 +108,7 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
      * Note: $event->data[1] dose not contain html of table of contents.
      */
     function handlePostProcess(Doku_Event $event, $param) {
-        global $INFO, $TOC, $conf;
+        global $ACT, $ID, $INFO, $TOC, $conf;
 
         // Workaround for locale wiki text that dose not need any TOC
         if ($conf['maxtoclevel'] == 0) {
@@ -116,6 +116,14 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
             $this->_setupTocConfig();
             return;
         }
+
+        // admin plugins such as the Congig Manager may have own TOC
+        if (in_array($ACT, ['admin'])) {
+            return;
+        }
+
+        // skip sidebar etc.
+        if ($ID <> $INFO['id']) return;
 
         $meta =& $INFO['meta']['toc'];
 
@@ -129,6 +137,11 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
 
         // Stage 1: prepare html of table of content
         // Note: $TOC must be modified in handleTocRender() if necessary
+        if (!$INFO['prependTOC']) {
+            // load helper object
+            isset($tocTweak) || $tocTweak = $this->loadHelper($this->getPluginName());
+            $TOC = $tocTweak->get_metatoc($INFO['id'], $meta['toptoclevel'], $meta['maxtoclevel']);
+        }
         $toc_html = html_TOC($TOC); // use function in inc/html.php
         if ($toc_html && isset($meta['class'])) {
             $search =  '<div id="dw__toc"';
@@ -195,7 +208,7 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
      * Pre-/postprocess the TOC array
      */
     function handleTocRender(Doku_Event $event, $param) {
-        global $ACT, $INFO, $conf;
+        global $ACT, $INFO;
 
         // admin plugins such as the Congig Manager may have own TOC
         if (in_array($ACT, ['admin'])) {
@@ -206,22 +219,13 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
         $meta =& $INFO['meta']['toc'];
         $topLv = @$meta['toptoclevel'] ?: $this->getConf('toptoclevel');
         $maxLv = @$meta['maxtoclevel'] ?: $this->getConf('maxtoclevel');
+        $headline = '';
+        $toc = $event->data; // data is reference to global $TOC
 
-        $toc =& $event->data; // reference to global $TOC
-        $items = array();
-        foreach ($toc as $item) {
-            // get headline level in real page
-            $Lv = $item['level'] + $conf['toptoclevel'] -1;
-            // get new toc level from headline level
-            $tocLv = $Lv - $topLv +1;
+        // load helper object
+        isset($tocTweak) || $tocTweak = $this->loadHelper($this->getPluginName());
 
-            if (($Lv < $topLv) || ($Lv > $maxLv)) {
-                continue;
-            }
-            $item['level'] = $tocLv;
-            $items[] = $item;
-        }
-        $event->data = $items;
+        $event->data = $tocTweak->_toc($toc, $topLv, $maxLv, $headline);
     }
 
 }
