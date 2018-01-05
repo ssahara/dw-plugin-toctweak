@@ -158,5 +158,21 @@ class helper_plugin_toctweak extends DokuWiki_Plugin {
         return $items;
     }
 
+    /**
+     * convert auto-toc array to XHTML tailored with class attibute
+     */
+    function html_toc(array $toc) {
+        global $INFO;
+        $meta =& $INFO['meta']['toc'];
+
+        $html = html_TOC($toc); // use function in inc/html.php
+        if ($html && isset($meta['class'])) {
+            $search =  '<div id="dw__toc"';
+            $replace = $search.' class="'.hsc($meta['class']).'"';
+            $html = str_replace($search, $replace, $html);
+        }
+        return $html;
+    }
+
 }
 
