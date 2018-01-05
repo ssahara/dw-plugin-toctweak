@@ -89,7 +89,7 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
                 // request check with additional dependent files
                 $depends = p_get_metadata($cache->page, 'relation toctweak');
                 if (!$depends) break;
-                $cache->depends['files'] = (!empty($cache->depends['files']))
+                $cache->depends['files'] = ($cache->depends['files'])
                         ? array_merge($cache->depends['files'], $depends)
                         : $depends;
         } // end of switch
@@ -135,20 +135,18 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
             }
         }
 
+        // retrieve toc config parameters from metadata
+        $topLv = @$meta['toptoclevel'] ?: $this->getConf('toptoclevel');
+        $maxLv = @$meta['maxtoclevel'] ?: $this->getConf('maxtoclevel');
+        $headline = '';
+        $toc = @$INFO['meta']['description']['tableofcontents'] ?: array();
+
+        // load helper object
+        isset($tocTweak) || $tocTweak = $this->loadHelper($this->getPluginName());
+
         // Stage 1: prepare html of table of content
-        // Note: $TOC must be modified in handleTocRender() if necessary
-        if (!$INFO['prependTOC']) {
-            // load helper object
-            isset($tocTweak) || $tocTweak = $this->loadHelper($this->getPluginName());
-            $TOC = $tocTweak->get_metatoc($INFO['id'], $meta['toptoclevel'], $meta['maxtoclevel']);
-        }
-        $toc_html = html_TOC($TOC); // use function in inc/html.php
-        if ($toc_html && isset($meta['class'])) {
-            $search =  '<div id="dw__toc"';
-            $replace = $search.' class="'.hsc($meta['class']).'"';
-            $toc_html = str_replace($search, $replace, $toc_html);
-            unset($search, $replace);
-        }
+        $toc = $tocTweak->_toc($toc, $topLv, $maxLv, $headline);
+        $html_toc = $tocTweak->html_toc($toc);
 
         // Stage 2: set PLACEHOLDER according to tocPostion config setting
         switch ($tocPosition) {
@@ -178,7 +176,7 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
         // Stage 3: replace PLACEHOLDER
         if ($count > 0) {
             // try to replace placeholder according to tocPostion
-            $event->data[1] = str_replace(self::TOC_HERE, $toc_html, $event->data[1], $count);
+            $event->data[1] = str_replace(self::TOC_HERE, $html_toc, $event->data[1], $count);
         }
         return;
     }
@@ -209,18 +207,18 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
      */
     function handleTocRender(Doku_Event $event, $param) {
         global $ACT, $INFO;
+        $meta =& $INFO['meta']['toc'];
 
-        // admin plugins such as the Congig Manager may have own TOC
-        if (in_array($ACT, ['admin'])) {
+        // Action mode check
+        if (!in_array($ACT, ['show','preview'])) {
             return;
         }
 
         // retrieve toc config parameters from metadata
-        $meta =& $INFO['meta']['toc'];
         $topLv = @$meta['toptoclevel'] ?: $this->getConf('toptoclevel');
         $maxLv = @$meta['maxtoclevel'] ?: $this->getConf('maxtoclevel');
         $headline = '';
-        $toc = $event->data; // data is reference to global $TOC
+        $toc = $event->data ?: array(); // data is reference to global $TOC
 
         // load helper object
         isset($tocTweak) || $tocTweak = $this->loadHelper($this->getPluginName());
