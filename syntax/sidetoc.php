@@ -57,7 +57,7 @@ class syntax_plugin_toctweak_sidetoc extends syntax_plugin_toctweak_metatoc {
         $id = $INFO['id'];     // str_replace('@ID@', $INFO['id'], $id);
 
         // retrieve toc config parameters from metadata
-        $meta =& $INFO['meta']['toc']; // or p_get_metadata($id, 'toc');
+        $meta = p_get_metadata($id, 'toc');
         $topLv = @$meta['toptoclevel'] ?: $this->getConf('toptoclevel');
         $maxLv = @$meta['maxtoclevel'] ?: $this->getConf('maxtoclevel');
 
