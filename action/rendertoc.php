@@ -117,8 +117,7 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
         isset($tocTweak) || $tocTweak = $this->loadHelper($this->getPluginName());
 
         // prepare html of table of content
-        $toc = $tocTweak->_toc($toc, $topLv, $maxLv, $headline);
-        $html_toc = $tocTweak->html_toc($toc);
+        $html_toc = $tocTweak->html_toc($toc, $topLv, $maxLv, $headline);
 
         // replace PLACEHOLDER with html_toc
         $event->data[1] = str_replace(self::TOC_HERE, $html_toc, $event->data[1], $count);
@@ -197,8 +196,7 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
         isset($tocTweak) || $tocTweak = $this->loadHelper($this->getPluginName());
 
         // prepare html of table of content
-        $toc = $tocTweak->_toc($toc, $topLv, $maxLv, $headline);
-        $html_toc = $tocTweak->html_toc($toc);
+        $html_toc = $tocTweak->html_toc($toc, $topLv, $maxLv, $headline);
 
         // get html content of current page from event data, exclude editor UI
         if ($ACT == 'preview') {
@@ -209,7 +207,7 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
             $content = $event->data;
         }
 
-        // Step 1: set PLACEHOLDER according to tocPostion config setting
+        // Step 1: set PLACEHOLDER based on tocPostion config setting
         if ($tocPosition == 0) {
             $content = self::TOC_HERE.$content;
             $count = 1;
