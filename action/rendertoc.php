@@ -176,7 +176,7 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
 
     /**
      * TPL_ACT_RENDER
-     * hide auto-toc when it should be shown at different position
+     * hide auto-toc that is to be rendered in handleContentDisplay()
      */
     function handleActRender(Doku_Event $event, $param) {
         global $ACT, $INFO;
@@ -186,12 +186,11 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
             return;
         }
 
-        $meta =& $INFO['meta']['toc'];
-        $tocPosition = @$meta['position'] ?: $this->getConf('tocPosition');
-
-        if (($tocPosition <> 0) or isset($meta['class'])) {
+        // Action mode check
+        if (in_array($ACT, ['show','preview'])) {
             $INFO['prependTOC'] = false;
         }
+        return;
     }
 
     /**
