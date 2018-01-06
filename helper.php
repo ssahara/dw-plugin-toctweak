@@ -102,7 +102,8 @@ class helper_plugin_toctweak extends DokuWiki_Plugin {
         // get interested headline items
         $toc = $this->_toc($toc, $topLv, $maxLv, $headline);
 
-        foreach ($toc as $item) {
+        // modify toc array items directly within loop by reference
+        foreach ($toc as &$item) {
             // add properties for toc of that is not current page
             if ($id != $ID) {
                 // headlines should be found in other wiki page
@@ -114,6 +115,7 @@ class helper_plugin_toctweak extends DokuWiki_Plugin {
                 $item['url']  = '#'.$item['hid'];
             }
         } // end of foreach
+        unset($item); // break the reference with the last item
         return $toc;
     }
 
