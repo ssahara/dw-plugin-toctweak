@@ -99,17 +99,14 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
 
     /**
      * RENDERER_CONTENT_POSTPROCESS
-     * set placeholder (to be replaced with html of toc) according to tocPosition
-     * -1: PLACEHOLDER set by syntax component
-     *  0: default. TOC will not moved
-     *  1: set PLACEHOLDER after the first level 1 heading
-     *  2: set PLACEHOLDER after the first level 2 heading
-     *  6: set PLACEHOLDER after the first heading
-     *
-     * Note: $event->data[1] dose not contain html of table of contents.
+     * replace placeholder set by autotoc syntax component with html_toc
+     * this must happen only when tocPosition is -1
+     * Note: Do not add/insert html of auto-toc in this event handler
+     * to avoid locale text (such as preview.txt) has unwanted toc box.
      */
     function handlePostProcess(Doku_Event $event, $param) {
-        global $ACT, $ID, $INFO, $TOC, $conf;
+        global $ACT, $INFO, $conf;
+        $meta =& $INFO['meta']['toc'];
 
         // Workaround for locale wiki text that dose not need any TOC
         if ($conf['maxtoclevel'] == 0) {
@@ -118,22 +115,15 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
             return;
         }
 
-        // admin plugins such as the Congig Manager may have own TOC
-        if (in_array($ACT, ['admin'])) {
-            return;
-        }
-
-        // skip sidebar etc.
-        if ($ID <> $INFO['id']) return;
-
-        $meta =& $INFO['meta']['toc'];
-
-        // TOC Position
+        // TOC Position check
         $tocPosition = @$meta['position'] ?: $this->getConf('tocPosition');
         if ($ACT == 'preview') {
             if (strpos($event->data[1], self::TOC_HERE) !== false) {
                 $tocPosition = -1;
             }
+        }
+        if ($tocPosition != -1) {
+            return;
         }
 
         // retrieve toc config parameters from metadata
@@ -145,32 +135,12 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
         // load helper object
         isset($tocTweak) || $tocTweak = $this->loadHelper($this->getPluginName());
 
-        // Stage 1: prepare html of table of content
+        // prepare html of table of content
         $toc = $tocTweak->_toc($toc, $topLv, $maxLv, $headline);
         $html_toc = $tocTweak->html_toc($toc);
 
-        // Stage 2: set PLACEHOLDER according to tocPostion config setting
-        switch ($tocPosition) {
-            case -1: // already set placeholder by syntax/autotoc.php
-                $count = 1;
-                break;
-            case 0:  // means no need to set placeholder, keep original position
-                if (isset($meta['class'])) {
-                    $event->data[1] = self::TOC_HERE.$event->data[1];
-                    $count = 1;
-                }
-                break;
-            case 9:  // means do not show auto-toc except {{TOC_HERE}}
-                break;
-            default: // 1,2,3,4,5 or 6
-                break;
-        } // end of switch
-
-        // Stage 3: replace PLACEHOLDER
-        if ($count > 0) {
-            // try to replace placeholder according to tocPostion
-            $event->data[1] = str_replace(self::TOC_HERE, $html_toc, $event->data[1], $count);
-        }
+        // replace PLACEHOLDER with html_toc
+        $event->data[1] = str_replace(self::TOC_HERE, $html_toc, $event->data[1], $count);
         return;
     }
 
