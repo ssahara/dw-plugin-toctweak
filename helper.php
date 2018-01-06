@@ -142,7 +142,11 @@ class helper_plugin_toctweak extends DokuWiki_Plugin {
                         continue;
                     }
                 } else {
-                    if ($item['level'] <= $headline_level) continue;
+                    if ($item['level'] <= $headline_level) {
+                        $headline_matched = false;
+                        $headline_level = null;
+                        continue;
+                    }
                 }
             }
 
