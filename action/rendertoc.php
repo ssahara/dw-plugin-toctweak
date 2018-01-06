@@ -20,68 +20,51 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
      * Register event handlers
      */
     function register(Doku_Event_Handler $controller) {
+        $controller->register_hook('ACTION_ACT_PREPROCESS','BEFORE', $this, 'handleActPreprocess');
         $controller->register_hook('PARSER_CACHE_USE', 'BEFORE', $this, 'handleParserCache');
 
         $controller->register_hook('RENDERER_CONTENT_POSTPROCESS', 'BEFORE', $this, 'handlePostProcess');
         $controller->register_hook('TPL_ACT_RENDER', 'BEFORE', $this, 'handleActRender');
-        $controller->register_hook('TPL_TOC_RENDER', 'BEFORE', $this, 'handleTocRender');
+     // $controller->register_hook('TPL_TOC_RENDER', 'BEFORE', $this, 'handleTocRender');
         $controller->register_hook('TPL_CONTENT_DISPLAY', 'BEFORE', $this, 'handleContentDisplay');
     }
 
 
     /**
-     * Overwrite toc config parameters to catch up all headings in pages
-     *  toptoclevel : highest headline level which can appear in table of contents
-     *  maxtoclevel : lowest headline level to include in table of contents
-     *  tocminheads : minimum amount of headlines to show table of contents
-     *
-     * Note: setting tocminheads to 1 may cause trouble in preview.txt ?
+     * ACTION_ACT_PREPROCESS
+     * catch action mode before dispacher begins to process the $ACT variable
      */
-    protected function _setupTocConfig($active=true) {
-        global $ACT, $conf;
-
-        if (in_array($ACT, ['admin'])) {
-            // admin plugins such as the Congig Manager may have own TOC
+    function handleActPreprocess(Doku_Event $event, $param) {
+        global $conf, $ACT, $ID;
+        if ($event->data == 'admin') {
+            // admin plugins such as the Config Manager may have own TOC
+            // that might be depend on global toc parameters?
             $conf['toptoclevel'] = 1;
             $conf['maxtoclevel'] = 3;
             $conf['tocminheads'] = 3;
-            return;
-        }
-
-        if ($this->getConf('tocAllHeads')) {
-            // try to disable TOC generation for locale wiki files
-            // e.g. for preview.txt
-            $conf['toptoclevel'] = 1;
-            $conf['maxtoclevel'] = ($active) ? 5 : 0;
-            $conf['tocminheads'] = $this->getConf('tocminheads');
         } else {
-            // just set plugin's toc settings to DW original conf array
-            $conf['toptoclevel'] = $this->getConf('toptoclevel');
-            $conf['maxtoclevel'] = $this->getConf('maxtoclevel');
+            // Overwrite toc config parameters to catch up all headings in pages
+            //  toptoclevel : highest headline level which can appear in table of contents
+            //  maxtoclevel : lowest headline level to include in table of contents
+            //  tocminheads : minimum amount of headlines to show table of contents
+            $active = $this->getConf('tocAllHeads');
+            $conf['toptoclevel'] = $active ? 1 : $this->getConf('toptoclevel');
+            $conf['maxtoclevel'] = $active ? 5 : $this->getConf('maxtoclevel');
             $conf['tocminheads'] = $this->getConf('tocminheads');
         }
+        return;
     }
 
     /**
      * PARSER_CACHE_USE
-     * Overwrite TOC config parameters to catch up all headings in pages
+     * manipulate cache validity (to get correct toc of other page)
      */
     function handleParserCache(Doku_Event $event, $param) {
+
         $cache =& $event->data;
 
-        // force set toc config parameters for pages (except locale XHTML files)
-        // exception when $cache->page is blank, we assume it is some locale wiki
-        // text and $conf['maxtoclevel'] = 0 to prepend adding placeholder in
-        // handlePostProcess()
-        if ($cache->page) {
-            $this->_setupTocConfig();
-        } else {
-            // assume as locale wiki files
-            ($cache->mode == 'i') && $this->_setupTocConfig(false);
-            return;
-        }
+        if (!$cache->page) return;
 
-        // manipulate cache validity (to get correct toc of other page)
         switch ($cache->mode) {
             case 'i':        // instruction cache
             case 'metadata': // metadata cache
@@ -105,13 +88,11 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
      * to avoid locale text (such as preview.txt) has unwanted toc box.
      */
     function handlePostProcess(Doku_Event $event, $param) {
-        global $ACT, $INFO, $conf;
+        global $ACT, $INFO;
         $meta =& $INFO['meta']['toc'];
 
-        // Workaround for locale wiki text that dose not need any TOC
-        if ($conf['maxtoclevel'] == 0) {
-            // once locale XHTML has rendered, then reset toc config parameters
-            $this->_setupTocConfig();
+        // Action mode check
+        if (!in_array($ACT, ['show','preview'])) {
             return;
         }
 
@@ -150,11 +131,6 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
      */
     function handleActRender(Doku_Event $event, $param) {
         global $ACT, $INFO;
-
-        // admin plugins such as the Congig Manager may have own TOC
-        if (in_array($ACT, ['admin'])) {
-            return;
-        }
 
         // Action mode check
         if (in_array($ACT, ['show','preview'])) {
