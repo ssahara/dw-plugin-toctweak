@@ -25,6 +25,7 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
         $controller->register_hook('RENDERER_CONTENT_POSTPROCESS', 'BEFORE', $this, 'handlePostProcess');
         $controller->register_hook('TPL_ACT_RENDER', 'BEFORE', $this, 'handleActRender');
         $controller->register_hook('TPL_TOC_RENDER', 'BEFORE', $this, 'handleTocRender');
+        $controller->register_hook('TPL_CONTENT_DISPLAY', 'BEFORE', $this, 'handleContentDisplay');
     }
 
 
@@ -162,15 +163,7 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
             case 9:  // means do not show auto-toc except {{TOC_HERE}}
                 break;
             default: // 1,2,3,4,5 or 6
-                $search  = '#</(h'.(($tocPosition == 6) ? '[1-6]' : $tocPosition).')>#';
-                $replace = '</$1>'.self::TOC_HERE;
-                $event->data[1] = preg_replace($search, $replace, $event->data[1], 1, $count);
-                if (!$count) {
-                    // show toc original position if placeholder replacement failed
-                    $event->data[1] = self::TOC_HERE.$event->data[1];
-                    $count = 1;
-                }
-                unset($search, $replace);
+                break;
         } // end of switch
 
         // Stage 3: replace PLACEHOLDER
@@ -224,6 +217,82 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
         isset($tocTweak) || $tocTweak = $this->loadHelper($this->getPluginName());
 
         $event->data = $tocTweak->_toc($toc, $topLv, $maxLv, $headline);
+    }
+
+    /**
+     * TPL_CONTENT_DISPLAY
+     * insert XHTML of auto-toc at tocPosition where
+     *  0: top of the content (default)
+     *  1: after the first level 1 heading
+     *  2: after the first level 2 heading
+     *  6: after the first heading
+     */
+    function handleContentDisplay(Doku_Event $event, $param) {
+        global $ACT, $INFO;
+        $meta =& $INFO['meta']['toc'];
+
+        // Action mode check
+        if (!in_array($ACT, ['show','preview'])) {
+            return;
+        }
+
+        // TOC Position check
+        $tocPosition = @$meta['position'] ?: $this->getConf('tocPosition');
+        if (!in_array($tocPosition, [0,1,2,6])) {
+            return;
+        }
+
+        // retrieve toc config parameters from metadata
+        $topLv = @$meta['toptoclevel'] ?: $this->getConf('toptoclevel');
+        $maxLv = @$meta['maxtoclevel'] ?: $this->getConf('maxtoclevel');
+        $headline = '';
+        $toc = @$INFO['meta']['description']['tableofcontents'] ?: array();
+
+        // load helper object
+        isset($tocTweak) || $tocTweak = $this->loadHelper($this->getPluginName());
+
+        // prepare html of table of content
+        $toc = $tocTweak->_toc($toc, $topLv, $maxLv, $headline);
+        $html_toc = $tocTweak->html_toc($toc);
+
+        // get html content of current page from event data, exclude editor UI
+        if ($ACT == 'preview') {
+            $search = '<div class="preview"><div class="pad">';
+            $offset = strpos($event->data, $search) + strlen($search);
+            $content = substr($event->data, $offset);
+        } else {
+            $content = $event->data;
+        }
+
+        // Step 1: set PLACEHOLDER according to tocPostion config setting
+        if ($tocPosition == 0) {
+            $content = self::TOC_HERE.$content;
+            $count = 1;
+        } else {
+            $search  = '#</(h'.(($tocPosition == 6) ? '[1-6]' : $tocPosition).')>#';
+            $replace = '</$1>'.self::TOC_HERE;
+            $content= preg_replace($search, $replace, $content, 1, $count);
+            if (!$count) {
+                // show toc original position if placeholder replacement failed
+                $content = self::TOC_HERE.$content;
+                $count = 1;
+            }
+            unset($search, $replace);
+        }
+
+        // Step 2: replace PLACEHOLDER with html_toc
+        if ($count > 0) {
+            // try to replace placeholder according to tocPostion
+            $content = str_replace(self::TOC_HERE, $html_toc, $content, $count);
+        }
+
+        // reflect content to event data
+        if ($ACT == 'preview') {
+            $event->data = substr($event->data, 0, $offset).$content;
+        } else {
+            $event->data = $content;
+        }
+        return;
     }
 
 }
