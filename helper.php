@@ -108,7 +108,7 @@ class helper_plugin_toctweak extends DokuWiki_Plugin {
             if ($id != $ID) {
                 // headlines should be found in other wiki page
                 $item['page']  = $id;
-                $item['url']   = wl($id.'#'.$item['hid']);
+                $item['url']   = wl($id).'#'.$item['hid'];
                 $item['class'] = 'wikilink1';
             } else {
                 // headlines in current page (internal link)
