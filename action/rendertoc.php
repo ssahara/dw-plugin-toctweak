@@ -20,6 +20,7 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
      * Register event handlers
      */
     function register(Doku_Event_Handler $controller) {
+     // $controller->register_hook('DOKUWIKI_STARTED', 'BEFORE', $this, '_initTocConfig');
         $controller->register_hook('ACTION_ACT_PREPROCESS','BEFORE', $this, 'handleActPreprocess');
         $controller->register_hook('PARSER_CACHE_USE', 'BEFORE', $this, 'handleParserCache');
 
@@ -29,6 +30,33 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
         $controller->register_hook('TPL_CONTENT_DISPLAY', 'BEFORE', $this, 'handleContentDisplay');
     }
 
+
+    /*
+     * Overwrite toc config parameters to catch up all headings in pages
+     *  toptoclevel : highest headline level which can appear in table of contents
+     *  maxtoclevel : lowest headline level to include in table of contents
+     *  tocminheads : minimum amount of headlines to show table of contents
+     */
+    function _setTocConfig() {
+        global $conf;
+        $active = $this->getConf('tocAllHeads');
+        if ($conf['toptoclevel'] != 1) {
+            $conf['toptoclevel'] = $active ? 1 : $this->getConf('toptoclevel');
+        }
+        if ($conf['maxtoclevel'] != 5) {
+            $conf['maxtoclevel'] = $active ? 5 : $this->getConf('maxtoclevel');
+        }
+        if ($conf['tocminheads'] != $this->getConf('tocminheads')) {
+            $conf['tocminheads'] = $this->getConf('tocminheads');
+        }
+    }
+
+    /**
+     * DOKUWIKI_STARTED
+     */
+    function _initTocConfig(Doku_Event $event, $param) {
+        $this->_setTocConfig();
+    }
 
     /**
      * ACTION_ACT_PREPROCESS
@@ -43,14 +71,7 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
             $conf['maxtoclevel'] = 3;
             $conf['tocminheads'] = 3;
         } else {
-            // Overwrite toc config parameters to catch up all headings in pages
-            //  toptoclevel : highest headline level which can appear in table of contents
-            //  maxtoclevel : lowest headline level to include in table of contents
-            //  tocminheads : minimum amount of headlines to show table of contents
-            $active = $this->getConf('tocAllHeads');
-            $conf['toptoclevel'] = $active ? 1 : $this->getConf('toptoclevel');
-            $conf['maxtoclevel'] = $active ? 5 : $this->getConf('maxtoclevel');
-            $conf['tocminheads'] = $this->getConf('tocminheads');
+            $this->_setTocConfig();
         }
         return;
     }
@@ -60,6 +81,9 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
      * manipulate cache validity (to get correct toc of other page)
      */
     function handleParserCache(Doku_Event $event, $param) {
+        global $conf;
+
+        $this->_setTocConfig(); //!! ensure correct toc parameters have set
 
         $cache =& $event->data;
 
