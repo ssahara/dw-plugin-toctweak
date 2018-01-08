@@ -1,6 +1,6 @@
 <?php
 /**
- * DokuWiki plugin TOC Tweak; Syntax toctweak inlinetoc
+ * TocTweak plugin for DokuWiki; Syntax inlinetoc
  * render toc inside the page content
  * 
  * provide compatibility for Andreone's inlinetoc plugin
@@ -10,13 +10,14 @@
  * @author     Satoshi Sahara <sahara.satoshi@gmail.com>
  */
 
-require_once(dirname(__FILE__).'/autotoc.php');
+require_once(dirname(__FILE__).'/metatoc.php');
 
-class syntax_plugin_toctweak_inlinetoc extends syntax_plugin_toctweak_autotoc {
+class syntax_plugin_toctweak_inlinetoc extends syntax_plugin_toctweak_metatoc {
 
     protected $pattern = array(
-        5 => '{{INLINETOC:?.*?}}',  // DOKU_LEXER_SPECIAL
+        5 => '{{INLINETOC\b.*?}}',  // DOKU_LEXER_SPECIAL
     );
-    protected $place_holder = '<!-- INLINETOC -->';
-
+    protected $tocStyle = array(  // default toc visual design
+        'INLINETOC' => 'toc_inline',
+    );
 }

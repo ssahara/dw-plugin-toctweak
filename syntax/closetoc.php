@@ -1,6 +1,6 @@
 <?php
 /**
- * DokuWiki plugin TOC Tweak; Syntax toctweak closetoc
+ * TocTweak plugin for DokuWiki; Syntax closetoc
  * set toggle state initially closed (by script.js)
  *
  * @license    GPL 2 (http://www.gnu.org/licenses/gpl.html)

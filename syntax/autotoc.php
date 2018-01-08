@@ -1,9 +1,8 @@
 <?php
 /**
- * DokuWiki plugin TOC Tweak; Syntax toctweak autotoc
- * set top and max level of headings of the page with optional css class
- * syntax of this component dose not relocate TOC,
- * however supports PLACEHOLDER output for other inherited components
+ * TocTweak plugin for DokuWiki; Syntax autotoc
+ * set top and max level of headlines to be found in table of contents
+ * render toc placeholder to show built-in toc box in the page
  *
  * @license    GPL 2 (http://www.gnu.org/licenses/gpl.html)
  * @author     Satoshi Sahara <sahara.satoshi@gmail.com>
@@ -15,93 +14,84 @@ class syntax_plugin_toctweak_autotoc extends DokuWiki_Syntax_Plugin {
 
     protected $mode;
     protected $pattern = array(
-        5 => '~~TOC:?.*?~~',  // DOKU_LEXER_SPECIAL
+        5 => '~~(?:TOC_HERE|NOTOC|TOC)\b.*?~~',
     );
-    protected $place_holder = '<!-- TOC -->';
+
+    const TOC_HERE = '<!-- TOC_HERE -->'.DOKU_LF;
 
     function __construct() {
         $this->mode = substr(get_class($this), 7); // drop 'syntax_' from class name
     }
 
-
-    public function getType() { return 'substition'; }
-    public function getPType(){ return 'block'; }
-    public function getSort() { return 30; }
+    function getType() { return 'substition'; }
+    function getPType(){ return 'block'; }
+    function getSort() { return 30; }
 
     /**
      * Connect pattern to lexer
      */
-    public function connectTo($mode) {
+    function connectTo($mode) {
         $this->Lexer->addSpecialPattern($this->pattern[5], $mode, $this->mode);
     }
 
     /**
      * Handle the match
      */
-    public function handle($match, $state, $pos, Doku_Handler $handler) {
-        return array($state, $match);
+    function handle($match, $state, $pos, Doku_Handler $handler) {
+        global $ID;
+        static $call_counter = [];  // holds number of ~~TOC_HERE~~ used in the page
+
+        // load helper object
+        isset($tocTweak) || $tocTweak = $this->loadHelper($this->getPluginName());
+
+        // parse syntax
+        preg_match('/^~~([A-Z_]+)/', $match, $m);
+        $start = strlen($m[1]) +2;
+        $param = substr($match, $start+1, -2);
+        list($topLv, $maxLv, $tocClass) = $tocTweak->parse($param);
+
+        if ($m[1] == 'TOC_HERE') {
+            // ignore ~~TOC_HERE~~ macro appeared more than once in a page
+            if ($call_counter[$ID]++ > 0) return;
+            $tocPosition = -1;
+        } else {
+            // TOC or NOTOC
+            if ($m[1] == 'NOTOC') $handler->_addCall('notoc', array(), $pos);
+            $tocPosition = null;
+        }
+
+        return $data = array($ID, $tocPosition, $topLv, $maxLv, $tocClass);
     }
 
     /**
      * Create output
      */
-    public function render($format, Doku_Renderer $renderer, $indata) {
-        if (empty($indata)) return false;
-        list($state, $data) = $indata;
+    function render($format, Doku_Renderer $renderer, $data) {
+        global $ID;
 
-        // get where and how the TOC should be located in the page
-        // -1: PLACEHOLDER set by syntax component
-        //  0: default. TOC will not moved (tocPostion config option)
-        //  1: set PLACEHOLDER after the first level 1 heading (tocPosition config optipn)
-        //  6: set PLACEHOLDER after the first heading (tocPosition config option)
-        $tocPosition = (substr($data, 0, 2) == '{{') ? -1 : 0;
+        list($id, $tocPosition, $topLv, $maxLv, $tocClass) = $data;
 
-        if ($format == 'xhtml') {
-            // Add PLACEHOLDER to cached page (will be replaced by action component)
-            if ($tocPosition < 0) $renderer->doc .= $this->place_holder;
-            return true;
+        // skip calls that belong to different page (eg. included pages)
+        if ($id != $ID) return false;
 
-        } elseif ($format == 'metadata') {
-            // strip and split markup
-            $matches = preg_split('/[:\s]+/', substr($data, 2, -2), 2);
-            $match = $matches[1];
+        switch ($format) {
+            case 'metadata':
+                // store matadata to overwrite $conf in PARSER_CACHE_USE event handler
+                isset($tocPosition) && $renderer->meta['toc']['position'] = $tocPosition;
+                isset($topLv)       && $renderer->meta['toc']['toptoclevel'] = $topLv;
+                isset($maxLv)       && $renderer->meta['toc']['maxtoclevel'] = $maxLv;
+                isset($tocClass)    && $renderer->meta['toc']['class'] = $tocClass;
+                return true;
 
-            // get TOC generation parameter
-            if (preg_match('/\b(?:(\d+)?-(\d+)|(\d+))\b/', $match, $matches)) {
-                if (count($matches) == 4) {
-                    $topLv = $matches[3];
-                } else {
-                    $topLv = $matches[1];
-                    $maxLv = $matches[2];
+            case 'xhtml':
+                // render PLACEHOLDER, which will be replaced later
+                // through action event handler handlePostProcess()
+                if (isset($tocPosition)) {
+                    $renderer->doc .= self::TOC_HERE;
+                    return true;
                 }
-                $match = preg_replace('/\b'.$matches[0].'\b/', '', $match);
-            }
-
-            // get class name for TOC box, ensure excluded any malcious character
-            if (!preg_match('/[^ A-Za-z0-9_-]/', $match)) {
-                $tocClass = trim($match);
-            }
-
-            if ($tocPosition != 0) {
-                $renderer->meta['toc']['position'] = $tocPosition;
-            }
-            if (isset($topLv)) {
-                if ($topLv == 0) $topLv = 1;
-                $topLv = ($topLv > 5) ? 5 : $topLv;
-                $renderer->meta['toc']['toptoclevel'] = $topLv;
-            }
-            if (isset($maxLv)) {
-                $maxLv = ($maxLv > 5) ? 5 : $maxLv;
-                $renderer->meta['toc']['maxtoclevel'] = $maxLv;
-            }
-            if (isset($tocClass)) {
-                $renderer->meta['toc']['class'] = $tocClass;
-            }
-            return true;
-
-        } else {
-            return false;
-        }
+        } // end of switch
+        return false;
     }
 
 }

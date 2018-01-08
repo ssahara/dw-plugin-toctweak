@@ -1,0 +1,161 @@
+/**
+ * TocTweak plugin for DokuWiki;
+ */
+
+.width18 { width: 18em !important; }
+
+/*------------------------------------*
+   METATOC hierarchical list style
+ *------------------------------------*/
+div.toc_hierarchical {
+    border-color: __border__;
+    border-style: solid;
+    border-width: thin;
+    border-radius: 4px;
+    padding-right: 1em;
+    background-color: __background_alt__;
+  h3 {
+    margin: 0;
+    padding: .2em 2em;
+    font-size: .875em;
+  }
+  > div {
+  }
+  ul {
+      counter-reset: hl_count;
+      list-style-type: none;
+      font-size: 95%;
+      li {
+        counter-increment: hl_count;
+        position: relative;
+        display: table;
+      }
+      li::before {
+        content: counters(hl_count, "-");
+        display: table-cell;
+        padding-right: .6em;
+        font-size: 80%;
+      }
+  }
+}
+
+/*------------------------------------*
+   INLINETOC
+ *------------------------------------*/
+div.toc_inline {
+    margin-top: 10px;
+    margin-bottom: 5px;
+    border-color: __border__;
+    border-style: solid;
+    border-width: thin;
+    padding-top: 10px;
+    border-radius: 10px;
+    // background-color: __background_alt__;
+  h3 {
+    padding-left: 2em;
+    font-size: .875em;
+    font-weight: bold;
+  }
+  > div {
+    font-size: .9375em;
+    padding-left: 1.6em;
+    padding-right: 1.6em;
+  }
+  ul {
+      list-style-type: square;
+      line-height: 1.5em;
+      li.clear {
+          list-style-type: none;
+      }
+  }
+}
+[dir=rtl] div.toc_inline {
+  h3 {
+    padding-right: 2em;
+    font-size: .875em;
+    font-weight: bold;
+  }
+  ul {
+      list-style-type: square;
+      line-height: 1.5em;
+  }
+}
+
+/*------------------------------------*
+   SIDETOC
+ *------------------------------------*/
+div.toc_shrinken {
+    font-size: .875em;
+    border-top: 1px solid __border__;
+    border-bottom: 1px solid __border__;
+    li.clear {
+        list-style-type: none;
+    }
+}
+
+/*------------------------------------*
+   Similar DokuWiki Built-in toc 
+   /lib/tpl/dokuwiki/css/content.css
+   /lib/tpl/dokuwiki/css/_toc.css
+ *------------------------------------*/
+div.toc_dokuwiki {
+    float: right;
+    margin: 0 0 1.4em 1.4em;
+    // border: 1px solid pink;
+    border-left: 4px solid #ccc;
+    padding: 0 0 1.4em 1.4em;
+    width: 12em;
+    background-color: __background__;
+    color: inherit;
+    h3 {
+        margin-left: -2em;
+        margin-bottom: 0;
+        padding: .5em 1em;
+        font-size: .875em;
+        font-weight: bold;
+    }
+    > div {
+      font-size: .875em;
+      color: inherit;
+    }
+    ul {
+        padding: 0;
+        margin: 0;
+        li {
+            // list-style: none;
+            padding: 0;
+            margin: 0;
+            line-height: 1.1;
+            div.li {
+                padding: .15em 0;
+            }
+            a {
+            }
+        }
+        li.clear {
+            // in case of toc list jumping one level
+            // (e.g. if heading level 3 follows directly after heading level 1)
+            list-style-type: none;
+        }
+        ul {
+            padding-left: 1em;
+        }
+        ul li {
+        }
+    }
+}
+[dir=rtl] div.toc_dokuwiki {
+    float: left;
+    margin: 0 1.4em 1.4em 0;
+    > div {
+        border-left-width: 0;
+        border-right: 4px solid #ccc;
+    }
+    ul {
+        ul {
+            padding-left: 0;
+            padding-right: 1em;
+        }
+    }
+}
+
