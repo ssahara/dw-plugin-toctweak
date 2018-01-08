@@ -2,6 +2,6 @@ base  toctweak
 name  TocTweak ver.2
 author Satoshi Sahara
 email  sahara.satoshi@gmail.com
-date   2018-01-05
+date   2018-01-08
 desc   Show tailored table of contents (TOC) of specified page/section in the page content
 url    https://www.dokuwiki.org/plugin:toctweak
