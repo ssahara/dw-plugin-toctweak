@@ -25,7 +25,7 @@ class syntax_plugin_toctweak_autotoc extends DokuWiki_Syntax_Plugin {
 
     function getType() { return 'substition'; }
     function getPType(){ return 'block'; }
-    function getSort() { return 30; }
+    function getSort() { return 29; } // less than Doku_Parser_Mode_notoc = 30
 
     /**
      * Connect pattern to lexer
@@ -56,8 +56,12 @@ class syntax_plugin_toctweak_autotoc extends DokuWiki_Syntax_Plugin {
             $tocPosition = -1;
         } else {
             // TOC or NOTOC
-            if ($m[1] == 'NOTOC') $handler->_addCall('notoc', array(), $pos);
-            $tocPosition = null;
+            if ($m[1] == 'NOTOC') {
+                $handler->_addCall('notoc', array(), $pos);
+                $tocPosition = 9;
+            } else {
+                $tocPosition = null;
+            }
         }
 
         return $data = array($ID, $tocPosition, $topLv, $maxLv, $tocClass);
