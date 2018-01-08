@@ -1,6 +1,6 @@
 <?php
 /**
- * DokuWiki plugin TOC Tweak; Action toctweak rendertoc
+ * TocTweak plugin for DokuWiki; Action rendertoc
  * move toc position in the page with optional css class
  *
  * developed from TOC plugin revision 1 (2009-09-23) by Andriy Lesyuk

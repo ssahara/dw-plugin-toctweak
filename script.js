@@ -1,5 +1,5 @@
 /*
- * DokuWiki plugin TOC Tweak;
+ * TocTweak plugin for DokuWiki;
  */
 jQuery(function() {
     if (typeof(JSINFO.toc) != 'undefined') {

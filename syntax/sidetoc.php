@@ -1,6 +1,6 @@
 <?php
 /**
- * DokuWiki plugin TOC Tweak; Syntax toctweak sidetoc
+ * TocTweak plugin for DokuWiki; Syntax sidetoc
  * 
  * provide compatibility for Andreone's inlinetoc plugin
  * @see also https://www.dokuwiki.org/plugin:inlinetoc

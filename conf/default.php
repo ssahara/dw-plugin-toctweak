@@ -1,6 +1,6 @@
 <?php
 /*
- * DokuWiki plugin TOC Tweak;
+ * TocTweak plugin for DokuWiki;
  */
 
 $conf['tocAllHeads'] = 1;

@@ -1,6 +1,6 @@
 <?php
 /**
- * DokuWiki plugin TOC Tweak; Syntax toctweak metatoc
+ * TocTweak plugin for DokuWiki; Syntax metatoc
  * 
  * @license    GPL 2 (http://www.gnu.org/licenses/gpl.html)
  * @author     Satoshi Sahara <sahara.satoshi@gmail.com>

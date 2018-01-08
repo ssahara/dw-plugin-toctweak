@@ -1,6 +1,6 @@
 <?php
 /**
- * DokuWiki plugin TOC Tweak; Syntax toctweak autotoc
+ * TocTweak plugin for DokuWiki; Syntax autotoc
  * set top and max level of headlines to be found in table of contents
  * render toc placeholder to show built-in toc box in the page
  *

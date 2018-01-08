@@ -1,6 +1,6 @@
 <?php
 /**
- * DokuWiki plugin TOC Tweak; Syntax toctweak inlinetoc
+ * TocTweak plugin for DokuWiki; Syntax inlinetoc
  * render toc inside the page content
  * 
  * provide compatibility for Andreone's inlinetoc plugin

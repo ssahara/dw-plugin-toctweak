@@ -1,5 +1,5 @@
 base  toctweak
-name  TOC Tweak ver.2
+name  TocTweak ver.2
 author Satoshi Sahara
 email  sahara.satoshi@gmail.com
 date   2018-01-05
