@@ -171,17 +171,23 @@ class helper_plugin_toctweak extends DokuWiki_Plugin {
         global $INFO;
         $meta =& $INFO['meta']['toc'];
 
+        if ($this->getConf('tocminheads') == 0) return '';
+
         if (count($params)) {
             // apply toc array filter
             list($topLv, $maxLv, $headline) = $params;
             $toc = $this->_toc($toc, $topLv, $maxLv, $headline);
         }
 
-        $html = html_TOC($toc); // use function in inc/html.php
-        if ($html && isset($meta['class'])) {
-            $search =  '<div id="dw__toc"';
-            $replace = $search.' class="'.hsc($meta['class']).'"';
-            $html = str_replace($search, $replace, $html);
+        if (count($toc) < $this->getConf('tocminheads')) {
+            $html = '';
+        } else {
+            $html = html_TOC($toc); // use function in inc/html.php
+            if ($html && isset($meta['class'])) {
+                $search =  '<div id="dw__toc"';
+                $replace = $search.' class="'.hsc($meta['class']).'"';
+                $html = str_replace($search, $replace, $html);
+            }
         }
         return $html;
     }
