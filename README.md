@@ -44,6 +44,6 @@ METATOC syntax family can render TOC of other page as well, with specified headl
 Licensed under the GNU Public License (GPL) version 2
 
 More infomation is available:
-  * http://www.dokuwiki.org/plugin:tweaktoc
+  * https://www.dokuwiki.org/plugin:toctweak
 
 (c) 2014-2018 Satoshi Sahara \<sahara.satoshi@gmail.com>
