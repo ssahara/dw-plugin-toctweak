@@ -24,13 +24,13 @@ class action_plugin_toctweak_closetoc extends DokuWiki_Action_Plugin {
         // TOC control should be changeable in only normal page
         if (( empty($ACT) || ($ACT=='show') || ($ACT=='preview')) == false) return;
 
-        if (!isset($INFO['meta']['toc']['initial_state'])) {
-            $meta_tocInitialState = 1; // open state
+        if (isset($INFO['meta']['toc']['state'])) {
+            $meta_tocState = $INFO['meta']['toc']['state'];
         } else {
-            $meta_tocInitialState = $INFO['meta']['toc']['initial_state'];
+            $meta_tocState = $this->getConf('tocState');
         }
         $JSINFO['toc'] = array(
-                'initial_state' => $meta_tocInitialState,
+                'initial_state' => $meta_tocState,
         );
     }
 
