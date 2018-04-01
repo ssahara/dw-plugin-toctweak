@@ -11,6 +11,10 @@ $lang['tocPosition'] = 'Position of auto-TOC box';
   $lang['tocPosition_o_2'] = 'after the First Level 2 headline';
   $lang['tocPosition_o_6'] = 'after the First headline';
   $lang['tocPosition_o_9'] = 'disable Auto-TOC';
+$lang['tocState']    = 'Initial state of auto-TOC box';
+  $lang['tocState_o_-1'] = 'closed';
+  $lang['tocState_o_0']  = 'disappeared';
+  $lang['tocState_o_1']  = 'opened';
 
 $lang['toptoclevel'] = 'Upper level of headline which can appear in table of contents';
 $lang['maxtoclevel'] = 'Lower level of headline which can appear in table of contents';

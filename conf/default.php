@@ -5,6 +5,7 @@
 
 $conf['tocAllHeads'] = 1;
 $conf['tocPosition'] = 0;
+$conf['tocState']    = 1;
 
 // Takeover TOC settings from main process
 // @see DOKU_INC/conf/dokuwiki.php

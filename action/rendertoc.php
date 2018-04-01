@@ -204,6 +204,10 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
             return;
         }
 
+        // TOC State check
+        $tocState = @$meta['state'] ?: $this->getConf('tocState');
+        if ($tocState === 0) return;
+
         // TOC Position check
         $tocPosition = @$meta['position'] ?: $this->getConf('tocPosition');
         if (!in_array($tocPosition, [0,1,2,6])) {

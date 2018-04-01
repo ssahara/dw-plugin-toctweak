@@ -5,6 +5,7 @@
 
 $meta['tocAllHeads'] = array('onoff');
 $meta['tocPosition'] = array('multichoice','_choices' => array(0,1,2,6,9));
+$meta['tocState']    = array('multichoice','_choices' => array(-1,0,1));
 
 // Takeover TOC settings from DokuWiki Configuration Manager
 // @see DOKU_INC/lib/plugins/config/settings/config.metadata.php
