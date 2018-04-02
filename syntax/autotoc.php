@@ -2,7 +2,6 @@
 /**
  * TocTweak plugin for DokuWiki; Syntax autotoc
  * set top and max level of headlines to be found in table of contents
- * render toc placeholder to show built-in toc box in the page
  *
  * @license    GPL 2 (http://www.gnu.org/licenses/gpl.html)
  * @author     Satoshi Sahara <sahara.satoshi@gmail.com>
@@ -14,7 +13,8 @@ class syntax_plugin_toctweak_autotoc extends DokuWiki_Syntax_Plugin {
 
     protected $mode;
     protected $pattern = array(
-        5 => '~~(?:TOC_HERE|NOTOC|TOC)\b.*?~~',
+     // 5 => '~~(?:TOC_HERE(?:_CLOSED)?|(?:CLOSE|NO)?TOC)\b.*?~~',
+        5 => '~~(?:CLOSE|NO)?TOC\b.*?~~',
     );
 
     const TOC_HERE = '<!-- TOC_HERE -->'.DOKU_LF;
@@ -50,21 +50,38 @@ class syntax_plugin_toctweak_autotoc extends DokuWiki_Syntax_Plugin {
         $param = substr($match, $start+1, -2);
         list($topLv, $maxLv, $tocClass) = $tocTweak->parse($param);
 
-        if ($m[1] == 'TOC_HERE') {
-            // ignore ~~TOC_HERE~~ macro appeared more than once in a page
-            if ($call_counter[$ID]++ > 0) return;
-            $tocPosition = -1;
-        } else {
-            // TOC or NOTOC
-            if ($m[1] == 'NOTOC') {
+        error_log(' autotoc '.$m[1].' '. $ID.' '.$pos);
+
+        switch ($m[1]) {
+            case 'NOTOC':
                 $handler->_addCall('notoc', array(), $pos);
                 $tocPosition = 9;
-            } else {
-                $tocPosition = null;
-            }
+                $tocState    = 0;
+                break;
+            case 'CLOSETOC':
+                $tocPosition = null; // $this->getConf('tocPosition');
+                $tocState    = -1;
+                break;
+            case 'TOC':
+                $tocPosition = null; // $this->getConf('tocPosition');
+                $tocState    = 1;
+                break;
+            case 'TOC_HERE':
+                $tocPosition = -1;
+                $tocState    = 1;
+                break;
+            case 'TOC_HERE_CLOSED':
+                $tocPosition = -1;
+                $tocState    = -1;
+                break;
         }
 
-        return $data = array($ID, $tocPosition, $topLv, $maxLv, $tocClass);
+        // ignore macro appeared more than once in a page
+        if ($call_counter[$ID]++ > 0) {
+            //return false;
+        }
+
+        return $data = array($ID, $tocState, $tocPosition, $topLv, $maxLv, $tocClass);
     }
 
     /**
@@ -72,16 +89,20 @@ class syntax_plugin_toctweak_autotoc extends DokuWiki_Syntax_Plugin {
      */
     function render($format, Doku_Renderer $renderer, $data) {
         global $ID;
+        static $call_counter = [];  // counts macro used in the page
 
-        list($id, $tocPosition, $topLv, $maxLv, $tocClass) = $data;
+        list($id, $tocState, $tocPosition, $topLv, $maxLv, $tocClass) = $data;
 
-        // skip calls that belong to different page (eg. included pages)
-        if ($id != $ID) return false;
+        // ignore macro appeared more than once in a page
+        if ($call_counter[$ID]++ > 0) {
+            return false;
+        }
 
         switch ($format) {
             case 'metadata':
                 // store matadata to overwrite $conf in PARSER_CACHE_USE event handler
                 isset($tocPosition) && $renderer->meta['toc']['position'] = $tocPosition;
+                isset($tocState)    && $renderer->meta['toc']['state'] = $tocState;
                 isset($topLv)       && $renderer->meta['toc']['toptoclevel'] = $topLv;
                 isset($maxLv)       && $renderer->meta['toc']['maxtoclevel'] = $maxLv;
                 isset($tocClass)    && $renderer->meta['toc']['class'] = $tocClass;
