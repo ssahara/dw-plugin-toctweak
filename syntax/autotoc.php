@@ -50,19 +50,23 @@ class syntax_plugin_toctweak_autotoc extends DokuWiki_Syntax_Plugin {
         $param = substr($match, $start+1, -2);
         list($topLv, $maxLv, $tocClass) = $tocTweak->parse($param);
 
-        if ($m[1] == 'TOC_HERE') {
-            // ignore ~~TOC_HERE~~ macro appeared more than once in a page
-            if ($call_counter[$ID]++ > 0) return;
-            $tocPosition = -1;
-        } else {
-            // TOC or NOTOC
-            if ($m[1] == 'NOTOC') {
+        switch ($m[1]) {
+            case 'NOTOC':
                 $handler->_addCall('notoc', array(), $pos);
                 $tocPosition = 9;
-            } else {
-                $tocPosition = null;
-            }
-        }
+                break;
+            case 'CLOSETOC':
+                $tocPosition = null; // $this->getConf('tocPosition');
+                break;
+            case 'TOC':
+                $tocPosition = null; // $this->getConf('tocPosition');
+                break;
+            case 'TOC_HERE':
+                // ignore ~~TOC_HERE~~ macro appeared more than once in a page
+                if ($call_counter[$ID]++ > 0) return;
+                $tocPosition = -1;
+                break;
+        } // end of switch
 
         return $data = array($ID, $tocPosition, $topLv, $maxLv, $tocClass);
     }
