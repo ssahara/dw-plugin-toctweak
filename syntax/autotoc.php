@@ -92,13 +92,26 @@ class syntax_plugin_toctweak_autotoc extends DokuWiki_Syntax_Plugin {
                 return true;
 
             case 'xhtml':
-                // render PLACEHOLDER, which will be replaced later
-                // through action event handler handlePostProcess()
-                if (isset($tocPosition)) {
-                    $renderer->doc .= self::TOC_HERE;
-                    return true;
-                }
+                // render PLACEHOLDER if necessary
+                return $this->render_xhtml($renderer, $tocPosition);
         } // end of switch
+        return false;
+    }
+
+    /**
+     * render PLACEHOLDER, which will be replaced later
+     * through action event handler handlePostProcess()
+     */
+    protected function render_xhtml(Doku_Renderer $renderer, $tocPosition) {
+        global $ID;
+        static $call_counter = [];  // holds number of ~~TOC_HERE~~ used in the page
+
+        if ($call_counter[$ID]++ > 0) {
+            return false;
+        } elseif (isset($tocPosition) && ($tocPosition == -1)) {
+            $renderer->doc .= self::TOC_HERE;
+            return true;
+        }
         return false;
     }
 
