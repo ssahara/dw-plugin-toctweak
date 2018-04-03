@@ -12,3 +12,7 @@ all.css
 
 # Since 2017-12-18
 syntax/locator.php
+
+# Since 2018-04-03
+syntax/closetoc.php
+ 

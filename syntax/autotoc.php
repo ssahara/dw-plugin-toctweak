@@ -2,6 +2,7 @@
 /**
  * TocTweak plugin for DokuWiki; Syntax autotoc
  * set top and max level of headlines to be found in table of contents
+ * allow to set autoTOC state initially closed
  * render toc placeholder to show built-in toc box in the page
  *
  * @license    GPL 2 (http://www.gnu.org/licenses/gpl.html)
@@ -14,7 +15,7 @@ class syntax_plugin_toctweak_autotoc extends DokuWiki_Syntax_Plugin {
 
     protected $mode;
     protected $pattern = array(
-        5 => '~~(?:TOC_HERE|NOTOC|TOC)\b.*?~~',
+        5 => '~~(?:TOC_HERE|(?:NO|CLOSE)?TOC)\b.*?~~',
     );
 
     const TOC_HERE = '<!-- TOC_HERE -->'.DOKU_LF;
@@ -57,6 +58,7 @@ class syntax_plugin_toctweak_autotoc extends DokuWiki_Syntax_Plugin {
                 break;
             case 'CLOSETOC':
                 $tocPosition = null; // $this->getConf('tocPosition');
+                $tocState = -1;
                 break;
             case 'TOC':
                 $tocPosition = null; // $this->getConf('tocPosition');
@@ -68,7 +70,7 @@ class syntax_plugin_toctweak_autotoc extends DokuWiki_Syntax_Plugin {
                 break;
         } // end of switch
 
-        return $data = array($ID, $tocPosition, $topLv, $maxLv, $tocClass);
+        return $data = array($ID, $tocPosition, $tocState, $topLv, $maxLv, $tocClass);
     }
 
     /**
@@ -77,7 +79,7 @@ class syntax_plugin_toctweak_autotoc extends DokuWiki_Syntax_Plugin {
     function render($format, Doku_Renderer $renderer, $data) {
         global $ID;
 
-        list($id, $tocPosition, $topLv, $maxLv, $tocClass) = $data;
+        list($id, $tocPosition, $tocState, $topLv, $maxLv, $tocClass) = $data;
 
         // skip calls that belong to different page (eg. included pages)
         if ($id != $ID) return false;
@@ -86,6 +88,7 @@ class syntax_plugin_toctweak_autotoc extends DokuWiki_Syntax_Plugin {
             case 'metadata':
                 // store matadata to overwrite $conf in PARSER_CACHE_USE event handler
                 isset($tocPosition) && $renderer->meta['toc']['position'] = $tocPosition;
+                isset($tocState)    && $renderer->meta['toc']['state'] = $tocState;
                 isset($topLv)       && $renderer->meta['toc']['toptoclevel'] = $topLv;
                 isset($maxLv)       && $renderer->meta['toc']['maxtoclevel'] = $maxLv;
                 isset($tocClass)    && $renderer->meta['toc']['class'] = $tocClass;
