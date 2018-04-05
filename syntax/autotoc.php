@@ -40,7 +40,6 @@ class syntax_plugin_toctweak_autotoc extends DokuWiki_Syntax_Plugin {
      */
     function handle($match, $state, $pos, Doku_Handler $handler) {
         global $ID;
-        static $call_counter = [];  // holds number of ~~TOC_HERE~~ used in the page
 
         // load helper object
         isset($tocTweak) || $tocTweak = $this->loadHelper($this->getPluginName());
@@ -64,8 +63,6 @@ class syntax_plugin_toctweak_autotoc extends DokuWiki_Syntax_Plugin {
                 $tocPosition = null; // $this->getConf('tocPosition');
                 break;
             case 'TOC_HERE':
-                // ignore ~~TOC_HERE~~ macro appeared more than once in a page
-                if ($call_counter[$ID]++ > 0) return;
                 $tocPosition = -1;
                 break;
         } // end of switch
@@ -78,43 +75,54 @@ class syntax_plugin_toctweak_autotoc extends DokuWiki_Syntax_Plugin {
      */
     function render($format, Doku_Renderer $renderer, $data) {
         global $ID;
+        static $call_counter = [];  // counts macro used in the page
+        static $call_ignore  = [];  // flag to be set when decisive macro has resolved
 
         list($id, $tocPosition, $tocState, $topLv, $maxLv, $tocClass) = $data;
 
         // skip calls that belong to different page (eg. included pages)
-        if ($id != $ID) return false;
+        //if ($id != $ID) return false;
+
+       // skip unnecessary calls after decisive macro has resolved
+        if (isset($call_ignore[$format][$ID])) {
+            return false;
+        }
 
         switch ($format) {
             case 'metadata':
+                // skip macros appeared more than once in a page, except ~~TOC_HERE~~
+                if ($tocPosition === -1) {
+                    unset($call_counter[$ID]);
+                }
+                if ($call_counter[$ID]++ > 0) {
+                    return false;
+                }
+
                 // store matadata to overwrite $conf in PARSER_CACHE_USE event handler
                 isset($tocPosition) && $renderer->meta['toc']['position'] = $tocPosition;
                 isset($tocState)    && $renderer->meta['toc']['state'] = $tocState;
                 isset($topLv)       && $renderer->meta['toc']['toptoclevel'] = $topLv;
                 isset($maxLv)       && $renderer->meta['toc']['maxtoclevel'] = $maxLv;
                 isset($tocClass)    && $renderer->meta['toc']['class'] = $tocClass;
+
+                if ($tocPosition === -1) {
+                    $call_ignore[$format][$ID] = true;
+                }
+
                 return true;
 
             case 'xhtml':
-                // render PLACEHOLDER if necessary
-                return $this->render_xhtml($renderer, $tocPosition);
+                // render PLACEHOLDER, which will be replaced later
+                // through action event handler handlePostProcess()
+                if ($tocPosition === -1) {
+                    $renderer->doc .= self::TOC_HERE;
+                    $call_ignore[$format][$ID] = true;
+                    return true;
+                } else {
+                    return false;
+                }
+
         } // end of switch
-        return false;
-    }
-
-    /**
-     * render PLACEHOLDER, which will be replaced later
-     * through action event handler handlePostProcess()
-     */
-    protected function render_xhtml(Doku_Renderer $renderer, $tocPosition) {
-        global $ID;
-        static $call_counter = [];  // holds number of ~~TOC_HERE~~ used in the page
-
-        if ($call_counter[$ID]++ > 0) {
-            return false;
-        } elseif (isset($tocPosition) && ($tocPosition == -1)) {
-            $renderer->doc .= self::TOC_HERE;
-            return true;
-        }
         return false;
     }
 
