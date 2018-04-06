@@ -15,7 +15,7 @@ class syntax_plugin_toctweak_autotoc extends DokuWiki_Syntax_Plugin {
 
     protected $mode;
     protected $pattern = array(
-        5 => '~~(?:TOC_HERE|(?:NO|CLOSE)?TOC)\b.*?~~',
+        5 => '~~(?:TOC_HERE(?:_CLOSED)?|(?:NO|CLOSE)?TOC)\b.*?~~',
     );
 
     const TOC_HERE = '<!-- TOC_HERE -->'.DOKU_LF;
@@ -52,7 +52,7 @@ class syntax_plugin_toctweak_autotoc extends DokuWiki_Syntax_Plugin {
 
         switch ($m[1]) {
             case 'NOTOC':
-                $handler->_addCall('notoc', array(), $pos);
+             // $handler->_addCall('notoc', array(), $pos);
                 $tocPosition = 9;
                 break;
             case 'CLOSETOC':
@@ -64,6 +64,10 @@ class syntax_plugin_toctweak_autotoc extends DokuWiki_Syntax_Plugin {
                 break;
             case 'TOC_HERE':
                 $tocPosition = -1;
+                break;
+            case 'TOC_HERE_CLOSED':
+                $tocPosition = -1;
+                $tocState = -1;
                 break;
         } // end of switch
 
