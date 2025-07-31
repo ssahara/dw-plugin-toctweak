@@ -120,6 +120,11 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
             return;
         }
 
+        // Skip processing for non-existent pages to prevent PHP 8.3 TypeError
+        if (!page_exists($INFO['id'])) {
+            return;
+        }
+
         // TOC Position check
         $tocPosition = @$meta['position'] ?: $this->getConf('tocPosition');
         if ($ACT == 'preview') {
@@ -175,6 +180,11 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
             return;
         }
 
+        // Skip processing for non-existent pages to prevent PHP 8.3 TypeError
+        if (!page_exists($INFO['id'])) {
+            return;
+        }
+
         // retrieve toc config parameters from metadata
         $topLv = @$meta['toptoclevel'] ?: $this->getConf('toptoclevel');
         $maxLv = @$meta['maxtoclevel'] ?: $this->getConf('maxtoclevel');
@@ -201,6 +211,11 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
 
         // Action mode check
         if (!in_array($ACT, ['show','preview'])) {
+            return;
+        }
+
+        // Skip processing for non-existent pages to prevent PHP 8.3 TypeError
+        if (!page_exists($INFO['id'])) {
             return;
         }
 
