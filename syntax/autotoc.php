@@ -52,7 +52,7 @@ class syntax_plugin_toctweak_autotoc extends DokuWiki_Syntax_Plugin {
 
         switch ($m[1]) {
             case 'NOTOC':
-             // $handler->_addCall('notoc', array(), $pos);
+                $handler->addCall('notoc', array(), $pos);
                 $tocPosition = 9;
                 break;
             case 'CLOSETOC':

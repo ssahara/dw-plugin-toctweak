@@ -56,7 +56,7 @@ class syntax_plugin_toctweak_metatoc extends DokuWiki_Syntax_Plugin {
 
         // should disable built-in TOC here?
         if ($m[1] == 'TOC') {
-            $handler->_addCall('notoc', array(), $pos);
+            $handler->addCall('notoc', array(), $pos);
         }
 
         // check basic tocStyle

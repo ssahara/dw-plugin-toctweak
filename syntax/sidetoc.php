@@ -27,7 +27,7 @@ class syntax_plugin_toctweak_sidetoc extends syntax_plugin_toctweak_metatoc {
         global $INFO, $ID;
 
         // disable using cache
-        $handler->_addCall('nocache', array(), $pos);
+        $handler->addCall('nocache', array(), $pos);
 
         $data = parent::handle($match, $state, $pos, $handler);
         list($id, $topLv, $maxLv, $tocClass, $tocTitle) = $data;
