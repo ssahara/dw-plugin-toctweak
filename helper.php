@@ -24,6 +24,8 @@ class helper_plugin_toctweak extends DokuWiki_Plugin {
 
         // Ex: {{METATOC 2-4 width18 toc_hierarchical >id#section | title}}
 
+        $topLv = $maxLv = null;
+
         // get tocTitle
         if (strpos($param, '|') !== false) {
             list($param, $tocTitle) = explode('|', $param);
@@ -34,8 +36,8 @@ class helper_plugin_toctweak extends DokuWiki_Plugin {
         }
 
         // get id#section
-        list($param, $id) = explode('>', $param, 2);
-        list($id, $hash) = array_map('trim', explode('#', $id, 2));
+        list($param, $id) = array_pad(explode('>', $param, 2), 2, '');
+        list($id, $hash) = array_pad(array_map('trim', explode('#', $id, 2)), 2, '');
         $id = cleanID($id).($hash ? '#'.$hash : '');
 
         // get other parameters
