@@ -34,8 +34,8 @@ class helper_plugin_toctweak extends DokuWiki_Plugin {
         }
 
         // get id#section
-        list($param, $id) = explode('>', $param, 2);
-        list($id, $hash) = array_map('trim', explode('#', $id, 2));
+        list($param, $id) = array_pad(explode('>', $param, 2), 2, null);
+        list($id, $hash) = array_map('trim', array_pad(explode('#', $id, 2), 2, null));
         $id = cleanID($id).($hash ? '#'.$hash : '');
 
         // get other parameters
@@ -56,18 +56,6 @@ class helper_plugin_toctweak extends DokuWiki_Plugin {
                         $maxLv = $matches[2];
                 }
 
-                if (isset($topLv)) {
-                    $topLv = ($topLv < 1) ? 1 : $topLv;
-                    $topLv = ($topLv > 5) ? 5 : $topLv;
-                } else {
-                    $topLv = $this->getConf('toptoclevel');
-                }
-
-                if (isset($maxLv)) {
-                    $maxLv = ($maxLv > 5) ? 5 : $maxLv;
-                } else {
-                    $maxLv = $this->getConf('maxtoclevel');
-                }
                 continue;
             }
 
@@ -76,10 +64,24 @@ class helper_plugin_toctweak extends DokuWiki_Plugin {
                 $classes[] = $token;
             }
         }
+        
         if (!empty($classes)) {
             $tocClass = implode(' ', $classes);
         } else {
             $tocClass = null;
+        }
+
+        if (isset($topLv)) {
+            $topLv = ($topLv < 1) ? 1 : $topLv;
+            $topLv = ($topLv > 5) ? 5 : $topLv;
+        } else {
+            $topLv = $this->getConf('toptoclevel');
+        }
+
+        if (isset($maxLv)) {
+            $maxLv = ($maxLv > 5) ? 5 : $maxLv;
+        } else {
+            $maxLv = $this->getConf('maxtoclevel');
         }
 
         return array($topLv, $maxLv, $tocClass, $tocTitle, $id);
@@ -93,7 +95,7 @@ class helper_plugin_toctweak extends DokuWiki_Plugin {
 
         // retrieve TableOfContents from metadata
         if ($id == $INFO['id']) {
-            $toc = $INFO['meta']['description']['tableofcontents'];
+            $toc = $INFO['meta']['description']['tableofcontents'] ?? null;
         } else {
             $toc = p_get_metadata($id,'description tableofcontents');
         }

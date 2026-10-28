@@ -121,7 +121,7 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
         }
 
         // TOC Position check
-        $tocPosition = @$meta['position'] ?: $this->getConf('tocPosition');
+        $tocPosition = $meta['position'] ?? $this->getConf('tocPosition');
         if ($ACT == 'preview') {
             if (strpos($event->data[1], self::TOC_HERE) !== false) {
                 $tocPosition = -1;
@@ -132,10 +132,10 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
         }
 
         // retrieve toc config parameters from metadata
-        $topLv = @$meta['toptoclevel'] ?: $this->getConf('toptoclevel');
-        $maxLv = @$meta['maxtoclevel'] ?: $this->getConf('maxtoclevel');
+        $topLv = $meta['toptoclevel'] ?? $this->getConf('toptoclevel');
+        $maxLv = $meta['maxtoclevel'] ?? $this->getConf('maxtoclevel');
         $headline = '';
-        $toc = @$INFO['meta']['description']['tableofcontents'] ?: array();
+        $toc = $INFO['meta']['description']['tableofcontents'] ?? array();
 
         // load helper object
         isset($tocTweak) || $tocTweak = $this->loadHelper($this->getPluginName());
@@ -176,8 +176,8 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
         }
 
         // retrieve toc config parameters from metadata
-        $topLv = @$meta['toptoclevel'] ?: $this->getConf('toptoclevel');
-        $maxLv = @$meta['maxtoclevel'] ?: $this->getConf('maxtoclevel');
+        $topLv = $meta['toptoclevel'] ?? $this->getConf('toptoclevel');
+        $maxLv = $meta['maxtoclevel'] ?? $this->getConf('maxtoclevel');
         $headline = '';
         $toc = $event->data ?: array(); // data is reference to global $TOC
 
@@ -205,16 +205,16 @@ class action_plugin_toctweak_rendertoc extends DokuWiki_Action_Plugin {
         }
 
         // TOC Position check
-        $tocPosition = @$meta['position'] ?: $this->getConf('tocPosition');
+        $tocPosition = $meta['position'] ?? $this->getConf('tocPosition');
         if (!in_array($tocPosition, [0,1,2,6])) {
             return;
         }
 
         // retrieve toc config parameters from metadata
-        $topLv = @$meta['toptoclevel'] ?: $this->getConf('toptoclevel');
-        $maxLv = @$meta['maxtoclevel'] ?: $this->getConf('maxtoclevel');
+        $topLv = $meta['toptoclevel'] ?? $this->getConf('toptoclevel');
+        $maxLv = $meta['maxtoclevel'] ?? $this->getConf('maxtoclevel');
         $headline = '';
-        $toc = @$INFO['meta']['description']['tableofcontents'] ?: array();
+        $toc = $INFO['meta']['description']['tableofcontents'] ?? array();
 
         // load helper object
         isset($tocTweak) || $tocTweak = $this->loadHelper($this->getPluginName());

@@ -58,8 +58,8 @@ class syntax_plugin_toctweak_sidetoc extends syntax_plugin_toctweak_metatoc {
 
         // retrieve toc config parameters from metadata
         $meta = p_get_metadata($id, 'toc');
-        $topLv = @$meta['toptoclevel'] ?: $this->getConf('toptoclevel');
-        $maxLv = @$meta['maxtoclevel'] ?: $this->getConf('maxtoclevel');
+        $topLv = $meta['toptoclevel'] ?? $this->getConf('toptoclevel');
+        $maxLv = $meta['maxtoclevel'] ?? $this->getConf('maxtoclevel');
 
         switch ($format) {
             case 'metadata':
@@ -70,7 +70,7 @@ class syntax_plugin_toctweak_sidetoc extends syntax_plugin_toctweak_metatoc {
                 isset($tocTweak) || $tocTweak = $this->loadHelper($this->getPluginName());
 
                 // retrieve TableOfContents from metadata
-                $toc = $tocTweak->get_metatoc($id, $topLv, $maxLv, $section);
+                $toc = $tocTweak->get_metatoc($id, $topLv, $maxLv);
 
                 // toc wrapper attributes
                 $attr['class'] = $tocClass;
