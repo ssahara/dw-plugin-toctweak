@@ -98,7 +98,8 @@ class syntax_plugin_toctweak_autotoc extends DokuWiki_Syntax_Plugin {
                 if ($tocPosition === -1) {
                     unset($call_counter[$ID]);
                 }
-                if ($call_counter[$ID]++ > 0) {
+                $call_counter[$ID] = ($call_counter[$ID] ?? 0) + 1;
+                if ($call_counter[$ID] > 1) {
                     return false;
                 }
 
